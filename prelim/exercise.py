@@ -39,7 +39,6 @@ def main():
         sys.exit()
 
     else:
-
         print("\nNow opening file...")
         # Print the path provided and try to open the file for reading
 
