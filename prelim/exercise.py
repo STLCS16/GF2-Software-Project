@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Preliminary exercises for Part IIA Project GF2."""
 import sys
+from mynames import MyNames
 
 
 def open_file(path):
@@ -16,12 +17,14 @@ def get_next_character(input_file):
     """Read and return the next character in input_file."""
     return input_file.read(1)
 
+
 def get_next_non_whitespace_character(input_file):
     """Seek and return the next non-whitespace character in input_file."""
     while True:
         cha = input_file.read(1)
         if cha == "" or not cha.isspace():
             return cha
+
 
 def get_next_number(input_file):
     """Seek the next number in input_file.
@@ -48,13 +51,14 @@ def get_next_name(input_file):
     cha = input_file.read(1)
     while cha != "" and not cha.isalpha():
         cha = input_file.read(1)
-    if cha =="":
+    if cha == "":
         return (None, "")
-    name_string =""
+    name_string = ""
     while cha != "" and cha.isalnum():
         name_string += cha
         cha = input_file.read(1)
     return (name_string, cha)
+
 
 def main():
     """Preliminary exercises for Part IIA Project GF2."""
@@ -98,18 +102,25 @@ def main():
         print("\nNow reading names...")
         # Print out all the names in the file
         input_file.seek(0)
-        while True:
-            name,next_cha = get_next_name(input_file)
+        while True: 
+            name, next_cha = get_next_name(input_file)
             if name is None:
                 break
-            print(name, end=" ")
-
-
+            print(name, end= " ")
         print("\nNow censoring bad names...")
         # Print out only the good names in the file
-        # name = MyNames()
-        # bad_name_ids = [name.lookup("Terrible"), name.lookup("Horrid"),
-        #                 name.lookup("Ghastly"), name.lookup("Awful")]
+        name_table = MyNames()
+        bad_name_ids = [name_table.lookup("Terrible"), name_table.lookup("Horrid"), name_table.lookup("Ghastly"), name_table.lookup("Awful")]
+        input_file.seek(0)
+        while True:
+            current_name_string, next_cha = get_next_name(input_file)
+            if current_name_string is None:
+                break
+            current_id = name_table.lookup(current_name_string)
+            if current_id not in bad_name_ids:
+                good_name = name_table.get_string(current_id)
+                print(good_name, end=" ")
+
 
 if __name__ == "__main__":
     main()

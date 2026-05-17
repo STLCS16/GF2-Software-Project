@@ -25,15 +25,29 @@ class MyNames:
 
     def __init__(self):
         """Initialise the names list."""
+        self.names = []
 
     def lookup(self, name_string):
         """Return the corresponding name ID for the given name_string.
 
         If the name string is not present in the names list, add it.
         """
+        if name_string in self.names:
+            return self.names.index(name_string)
+        else:
+            self.names.append(name_string)
+            return len(self.names) - 1
 
     def get_string(self, name_id):
         """Return the corresponding name string for the given name_id.
 
         If the name ID is not a valid index into the names list, return None.
         """
+        if not isinstance(name_id, int):
+            raise TypeError("name_id must be an integer.")
+        if name_id < 0:
+            raise ValueError("name_id cannot be negative.")
+        if name_id < len(self.names):
+            return self.names[name_id]
+        else:
+            return None
