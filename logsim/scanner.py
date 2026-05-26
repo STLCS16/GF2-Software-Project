@@ -66,6 +66,7 @@ class Scanner:
         ] = range(12)
     
         self.keywords_list = ["DEVICES", "CONNECTIONS", "SIGNALS", "END"]
+        self.device_list = []
         self.keyword_ids = self.names.lookup(self.keywords_list)
     
         self.advance()

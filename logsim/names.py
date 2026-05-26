@@ -74,7 +74,7 @@ class Names:
         return index_list
         
 
-    def get_name_string(self, name_id):
+    def get_name(self, name_id):
         """Return the corresponding name string for name_id.
 
         If the name_id is not an index in the names list, return None.
@@ -85,6 +85,16 @@ class Names:
             raise ValueError("name_id cannot be negative.")
         if name_id < len(self.names):
             return self.names[name_id]
+        else:
+            return None
+        
+    def get_number(self, number_id):
+        if not isinstance(number_id, int):
+            raise TypeError("number_id must be an integer.")
+        if number_id < 0:
+            raise ValueError("number_id cannot be negative.")
+        if number_id < len(self.names):
+            return self.names[number_id]
         else:
             return None
         
