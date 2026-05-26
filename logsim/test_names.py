@@ -1,6 +1,5 @@
 import pytest
-from logsim import names
-from names import Names # Assumes your class is in names.py
+from names import Names 
 
 
 @pytest.fixture
