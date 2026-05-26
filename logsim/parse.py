@@ -38,6 +38,8 @@ class Parser:
         self.names = names
         self.scanner = scanner
         self.devices = devices
+        self.current_line = 0
+        self.current_column = 0
 
     def parse_network(self):
         """Parse the circuit definition file."""
@@ -46,117 +48,127 @@ class Parser:
         # errors in the circuit definition file.
         #return True
     
-        self.symbol = self.scanner.get_symbol()
+        self.symbol = self.get_next_symbol()
         if self.symbol.id == self.names.lookup(["DEVICES"]):
-            self.symbol = self.scanner.get_symbol()
+            self.symbol = self.get_next_symbol()
         else:
-            self.error()
+            self.error(False,"Expected 'DEVICES' header.")
         if self.symbol.type == self.scanner.COLON:
-                self.symbol = self.scanner.get_symbol()
+                self.symbol = self.get_next_symbol()
         else:
-            self.error()
+            self.error(False, "Expected ':' at the end of line.")
         while self.symbol.type != self.scanner.KEYWORD:
             self.assignment()
         
         if self.symbol.id == self.names.lookup(["CONNECTIONS"]):
-            self.symbol = self.scanner.get_symbol()
+            self.symbol = self.get_next_symbol()
         else:
-            self.error()
+            self.error(False, "Expected 'CONNECTIONS' header.")
         if self.symbol.type == self.scanner.COLON:
-                self.symbol = self.scanner.get_symbol()
+                self.symbol = self.get_next_symbol()
         else:
-            self.error()
+            self.error(False, "Expected ':' at the end of line.")
         while self.symbol.type != self.scanner.KEYWORD:
             self.connection()
         
         if self.symbol.id == self.names.lookup(["SIGNALS"]):
-            self.symbol = self.scanner.get_symbol()
+            self.symbol = self.get_next_symbol()
         else:
-            self.error()
+            self.error(False, "Expected 'SIGNALS' header.")
         if self.symbol.type == self.scanner.COLON:
-                self.symbol = self.scanner.get_symbol()
+                self.symbol = self.get_next_symbol()
         else:
-            self.error()
+            self.error(False, "Expected ':' at the end of line.")
         self.signals()
 
         if self.symbol.id == self.names.lookup(["END"]):
-            self.symbol = self.scanner.get_symbol()
+            self.symbol = self.get_next_symbol()
             if self.symbol.type == self.scanner.EOF:
                 return True
             else:
-                self.error()
+                self.error(False, "Expected no more text after 'END'. Expected end of file.")
         else:
-            self.error()
+            self.error(False, "Expected 'END' header.")
 
     def device(self):
         if self.symbol.type == self.scanner.NAME:
             if self.symbol.id in self.devices.gate_types:
-                self.symbol = self.scanner.get_symbol()
+                self.symbol = self.get_next_symbol()
             elif self.symbol.id in self.devices.device_types:
-                self.symbol = self.scanner.get_symbol()
+                self.symbol = self.get_next_symbol()
             else:
-                self.error()
+                self.error(False, "Invalid device name. Expected gate (NOT/AND/NAND/OR/NOR/XOR), switch, bistable or clock.")
         else:
-            self.error()
+            self.error(False, "Invalid name. Expected a device name.")
 
     def assignment(self):
         self.identifier()
 
         if self.symbol.type != self.scanner.EQUALS:
-            self.error()
-        self.symbol = self.scanner.get_symbol()
+            self.error(False, "Invalid assignment. Expected '=' sign.")
+        self.symbol = self.get_next_symbol()
         self.device()
 
         if self.symbol.type == self.scanner.OPEN_PAREN:
-            self.symbol = self.scanner.get_symbol()
+            self.symbol = self.get_next_symbol()
 
             if self.symbol.type != self.scanner.NUMBER:
-                self.error()
-            self.symbol = self.scanner.get_symbol()
+                self.error(False, "Invalid parameter. Expected a number.")
+            self.symbol = self.get_next_symbol()
 
             if self.symbol.type != self.scanner.CLOSE_PAREN:
-                self.error()
-            self.symbol = self.scanner.get_symbol()
+                self.error(False, "Missing ')' in the assignment.")
+            self.symbol = self.get_next_symbol()
 
         if self.symbol.type != self.scanner.SEMICOLON:
-            self.error()
-        self.symbol = self.scanner.get_symbol()
+            self.error(False, "Expected ';' at the end of line.")
+        self.symbol = self.get_next_symbol()
 
 
     def terminal(self):
         self.identifier()
 
         if self.symbol.type == self.scanner.DOT:
-            self.symbol = self.scanner.get_symbol()
+            self.symbol = self.get_next_symbol()
             if self.symbol.type == self.scanner.INPUT:
-                self.symbol = self.scanner.get_symbol()
+                self.symbol = self.get_next_symbol()
             elif self.symbol.id in self.devices.dtype_input_ids:
-                self.symbol = self.scanner.get_symbol()
+                self.symbol = self.get_next_symbol()
             if self.symbol.id in self.devices.dtype_outputs:
-                self.symbol = self.scanner.get_symbol()
+                self.symbol = self.get_next_symbol()
             else:
-                self.error()
+                self.error(False, "Invalid terminal. Expected a input/output name after the '.'.")
 
 
     def connection(self):
         self.terminal()
         if self.symbol.type == self.scanner.ARROW:
-            self.symbol = self.scanner.get_symbol()
+            self.symbol = self.get_next_symbol()
             self.terminal()
             if self.symbol.type == self.scanner.SEMICOLON:
-                self.symbol = self.scanner.get_symbol()
+                self.symbol = self.get_next_symbol()
             else:
-                self.error()
+                self.error(False, "Expected ';' at the end of line.")
         else:
-            self.error()
+            self.error(False, "Invalid connection. Expected '->' after the terminal.")
 
     def signals(self):
         while self.symbol.type == self.scanner.TERMINAL:
             self.terminal()
             if self.symbol.type == self.scanner.SEMICOLON:
-                self.symbol = self.scanner.get_symbol()
+                self.symbol = self.get_next_symbol()
             else:
-                self.error()
+                self.error(False, "Expected ';' at the end of line.")
+    
+    def get_next_symbol(self):
+        self.symbol = self.get_next_symbol()
+        if self.symbol.line != self.current_line:
+            self.current_line = self.symbol.line
+            self.current_column = self.symbol.column
             
-    def error(self, error_type):
-        pass
+    def error(self, error_type, message):
+        #error type will be a boolean (False if syntax error and True if semantic error)
+        #message will represent the error message
+        error_message_list = ["Syntax error detected.","Semantic error detected."]
+        print(error_message_list[error_type],"Line",self.current_line,":", self.scanner.file_lines[self.current_line - 1])
+        print(message)
