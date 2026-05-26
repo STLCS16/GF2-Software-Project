@@ -44,11 +44,47 @@ class Parser:
         # For now just return True, so that userint and gui can run in the
         # skeleton code. When complete, should return False when there are
         # errors in the circuit definition file.
-        return True
-
-    def identifier(self):
-        if self.symbol.type == self.scanner.NAME:
+        #return True
+    
+        self.symbol = self.scanner.get_symbol()
+        if self.symbol.id == self.names.lookup(["DEVICES"]):
             self.symbol = self.scanner.get_symbol()
+        else:
+            self.error()
+        if self.symbol.type == self.scanner.COLON:
+                self.symbol = self.scanner.get_symbol()
+        else:
+            self.error()
+        while self.symbol.type != self.scanner.KEYWORD:
+            self.assignment()
+        
+        if self.symbol.id == self.names.lookup(["CONNECTIONS"]):
+            self.symbol = self.scanner.get_symbol()
+        else:
+            self.error()
+        if self.symbol.type == self.scanner.COLON:
+                self.symbol = self.scanner.get_symbol()
+        else:
+            self.error()
+        while self.symbol.type != self.scanner.KEYWORD:
+            self.connection()
+        
+        if self.symbol.id == self.names.lookup(["SIGNALS"]):
+            self.symbol = self.scanner.get_symbol()
+        else:
+            self.error()
+        if self.symbol.type == self.scanner.COLON:
+                self.symbol = self.scanner.get_symbol()
+        else:
+            self.error()
+        self.signals()
+
+        if self.symbol.id == self.names.lookup(["END"]):
+            self.symbol = self.scanner.get_symbol()
+            if self.symbol.type == self.scanner.EOF:
+                return True
+            else:
+                self.error()
         else:
             self.error()
 
@@ -60,12 +96,6 @@ class Parser:
                 self.symbol = self.scanner.get_symbol()
             else:
                 self.error()
-        else:
-            self.error()
-
-    def headings(self):
-        if self.symbol.type == self.scanner.KEYWORD:
-            self.symbol = self.scanner.get_symbol()
         else:
             self.error()
 
@@ -93,31 +123,20 @@ class Parser:
         self.symbol = self.scanner.get_symbol()
 
 
-    def input(self):
-        if self.symbol.type == self.scanner.INPUT:
-            self.symbol = self.scanner.get_symbol()
-        elif self.symbol.id in self.devices.dtype_input_ids:
-            self.symbol = self.scanner.get_symbol()
-        else:
-            self.error()
-            
-
-    def output(self):
-        if self.symbol.id in self.devices.dtype_outputs:
-            self.symbol = self.scanner.get_symbol()
-        else:
-            self.error()
-
-
     def terminal(self):
         self.identifier()
 
         if self.symbol.type == self.scanner.DOT:
             self.symbol = self.scanner.get_symbol()
-            if ((self.symbol.type == self.scanner.INPUT) or (self.symbol.id in self.devices.dtype_input_ids)):
-                self.input()
+            if self.symbol.type == self.scanner.INPUT:
+                self.symbol = self.scanner.get_symbol()
+            elif self.symbol.id in self.devices.dtype_input_ids:
+                self.symbol = self.scanner.get_symbol()
+            if self.symbol.id in self.devices.dtype_outputs:
+                self.symbol = self.scanner.get_symbol()
             else:
-                self.output()
+                self.error()
+
 
     def connection(self):
         self.terminal()
@@ -132,11 +151,6 @@ class Parser:
             self.error()
 
     def signals(self):
-        self.terminal()
-        if self.symbol.type == self.scanner.SEMICOLON:
-                self.symbol = self.scanner.get_symbol()
-        else:
-            self.error()
         while self.symbol.type == self.scanner.TERMINAL:
             self.terminal()
             if self.symbol.type == self.scanner.SEMICOLON:
