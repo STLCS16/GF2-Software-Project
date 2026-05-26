@@ -35,6 +35,7 @@ class Parser:
 
     def __init__(self, names, devices, network, monitors, scanner):
         """Initialise constants."""
+        self.names = names
         self.scanner = scanner
         self.devices = devices
 
@@ -51,26 +52,14 @@ class Parser:
         else:
             self.error()
 
-    def gate(self):
-        if self.symbol.type == self.scanner.GATE:
-            self.symbol = self.scanner.get_symbol()
-        else:
-            self.error()
-    
-    def flipflop(self):
-        if self.symbol.type == self.scanner.FLIPFLOP:
-            self.symbol = self.scanner.get_symbol()
-        else:
-            self.error()
-
     def device(self):
-        if self.symbol.id in self.devices.gate_strings:
-            self.gate()
-        elif self.symbol.id in self.devices.device_strings:
-            if self.symbol.type == self.scanner.FLIPFLOP:
-                self.flipflop()
-            else:
+        if self.symbol.type == self.scanner.NAME:
+            if self.symbol.id in self.devices.gate_types:
                 self.symbol = self.scanner.get_symbol()
+            elif self.symbol.id in self.devices.device_types:
+                self.symbol = self.scanner.get_symbol()
+            else:
+                self.error()
         else:
             self.error()
 
@@ -88,14 +77,14 @@ class Parser:
         self.symbol = self.scanner.get_symbol()
         self.device()
 
-        if self.symbol.type == self.scanner.LEFT_BRACKET:
+        if self.symbol.type == self.scanner.OPEN_PAREN:
             self.symbol = self.scanner.get_symbol()
 
             if self.symbol.type != self.scanner.NUMBER:
                 self.error()
             self.symbol = self.scanner.get_symbol()
 
-            if self.symbol.type != self.scanner.RIGHT_BRACKET:
+            if self.symbol.type != self.scanner.CLOSE_PAREN:
                 self.error()
             self.symbol = self.scanner.get_symbol()
 
@@ -107,11 +96,7 @@ class Parser:
     def input(self):
         if self.symbol.type == self.scanner.INPUT:
             self.symbol = self.scanner.get_symbol()
-            if self.symbol.type == self.scanner.NUMBER:
-                self.symbol = self.scanner.get_symbol()
-            else:
-                self.error()
-        elif self.symbol.type == self.scanner.BISTABLE_INPUT:
+        elif self.symbol.id in self.devices.dtype_input_ids:
             self.symbol = self.scanner.get_symbol()
         else:
             self.error()
@@ -123,18 +108,16 @@ class Parser:
         else:
             self.error()
 
+
     def terminal(self):
         self.identifier()
 
         if self.symbol.type == self.scanner.DOT:
             self.symbol = self.scanner.get_symbol()
-
-            if self.symbol.type in [self.scanner.INPUT, self.scanner.BISTABLE_INPUT]:
+            if ((self.symbol.type == self.scanner.INPUT) or (self.symbol.id in self.devices.dtype_input_ids)):
                 self.input()
-            elif self.symbol.type == self.scanner.BISTABLE_OUTPUT:
-                self.output()
             else:
-                self.error()
+                self.output()
 
     def connection(self):
         self.terminal()
