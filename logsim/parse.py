@@ -11,7 +11,6 @@ Parser - parses the definition file and builds the logic network.
 import scanner
 import sys
 import wx
-from gui import Gui
 
 class ParseSyntaxError(Exception):
     """Custom exception raised when a syntax rule is broken."""
@@ -315,17 +314,3 @@ class Parser:
             if self.symbol.id in [self.CONNECTIONS_ID, self.SIGNALS_ID]:
                 return  
             self.get_next_symbol()
-
-
-if __name__ == "__main__":
-    app = wx.App()
-    gui = Gui(
-        "Logic Simulator GUI Test",
-        path=None,
-        names=None,
-        devices=None,
-        network=None,
-        monitors=None
-    )
-    gui.Show()
-    app.MainLoop()
