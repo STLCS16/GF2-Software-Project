@@ -78,11 +78,11 @@ class Scanner:
         self.end_list = ["END"]
         self.names.lookup(self.end_list)
         #device
-        self.device_list_ni = ["DTYPE", "XOR","NOT"]#ni means no need to specify number of input
-        self.device_list_i = ["AND", "OR", "NAND", "NOR","CLOCK", "SWITCH"] # i means need to specify number of input
+        self.device_list_ni = ["DTYPE", "NOT"]#ni means no need to specify number of input
+        self.device_list_i = ["AND", "XOR","OR", "NAND", "NOR","CLOCK", "SWITCH"] # i means need to specify number of input
         self.names.lookup(self.device_list_ni + self.device_list_i)
         #identifier
-        self.identifier_list = [f'I{i}' for i in range(1, 17)] + ['D', 'CLK', 'SET','CLEAR', 'Q','QBAR'] #changed DATA to D
+        self.identifier_list = [f'I{i}' for i in range(1, 17)] + ['DATA', 'CLK', 'SET','CLEAR', 'Q','QBAR'] 
         self.names.lookup(self.identifier_list) # avoid user name the device as I1 or other confusing term
         #punctuation
         self.comma = ','
