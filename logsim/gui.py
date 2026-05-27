@@ -243,30 +243,44 @@ class Gui(wx.Frame):
         self.canvas = MyGLCanvas(self, devices, monitors)
 
         # Configure the widgets
-        self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
-        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
+        #self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
+        #self.runspin = wx.SpinCtrl(self, wx.ID_ANY, "10")
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
+        #self.conspin = wx.SpinCtrl(self, wx.ID_ANY, "10")
+        self.con_button = wx.Button(self, wx.ID_ANY, "Continue")
+        self.stop_button = wx.Button(self, wx.ID_ANY, "Stop")
         self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
                                     style=wx.TE_PROCESS_ENTER)
 
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
-        self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
+        #self.runspin.Bind(wx.EVT_SPINCTRL, self.on_spin)
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
+        #self.conspin.Bind(wx.EVT_SPINCTRL, self.con_spin)
+        self.con_button.Bind(wx.EVT_BUTTON, self.on_con_button)
+        self.stop_button.Bind(wx.EVT_BUTTON, self.on_stop_button)
         self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
 
         # Configure sizers for layout
-        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        side_sizer = wx.BoxSizer(wx.VERTICAL)
+        side_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
-        main_sizer.Add(side_sizer, 1, wx.ALL, 5)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        side_sizer.Add(self.text, 1, wx.TOP, 10)
-        side_sizer.Add(self.spin, 1, wx.ALL, 5)
-        side_sizer.Add(self.run_button, 1, wx.ALL, 5)
-        side_sizer.Add(self.text_box, 1, wx.ALL, 5)
+        main_sizer.Add(self.canvas, 2, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(self.text_box, 1, wx.EXPAND | wx.ALL, 5)
+        toolbar_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
+        self.run_button = wx.Button(self.text_box, label="Run")
+        self.stop_button = wx.Button(self.text_box, label="Stop")
+        self.con_button = wx.Button(self.text_box, label="Continue")
+        toolbar_sizer.Add(self.run_button, 0, wx.RIGHT, 5)
+        toolbar_sizer.Add(self.stop_button, 0, wx.RIGHT, 5)
+        #side_sizer.Add(self.text, 1, wx.TOP, 10)
+        #side_sizer.Add(self.runspin, 1, wx.ALL, 5)
+        #side_sizer.Add(self.run_button, 1, wx.ALL, 5)
+        #side_sizer.Add(self.conspin, 1, wx.ALL, 5)
+        #side_sizer.Add(self.con_button, 1, wx.ALL, 5)
+    
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
 
@@ -281,8 +295,8 @@ class Gui(wx.Frame):
 
     def on_spin(self, event):
         """Handle the event when the user changes the spin control value."""
-        spin_value = self.spin.GetValue()
-        text = "".join(["New spin control value: ", str(spin_value)])
+        spin_value = self.runspin.GetValue()
+        text = "".join(["New Running cycle: ", str(spin_value)])
         self.canvas.render(text)
 
     def on_run_button(self, event):
@@ -294,4 +308,17 @@ class Gui(wx.Frame):
         """Handle the event when the user enters text."""
         text_box_value = self.text_box.GetValue()
         text = "".join(["New text box value: ", text_box_value])
+        self.canvas.render(text)
+    def on_con_button(self, event):
+        """Handle the event when the user clicks the continue button."""
+        text = "Continue button pressed."
+        self.canvas.render(text)
+    def con_spin(self, event):
+        """Handle the event when the user changes the spin control value."""
+        spin_value = self.conspin.GetValue()
+        text = "".join(["New Continue Cycle: ", str(spin_value)])
+        self.canvas.render(text)
+    def on_stop_button(self, event):
+        """Handle the event when the user clicks the continue button."""
+        text = "Continue button pressed."
         self.canvas.render(text)
