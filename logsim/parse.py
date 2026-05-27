@@ -146,7 +146,8 @@ class Parser:
             raise ParseSyntaxError()
 
     def device(self):
-        if self.symbol.type == self.scanner.DEVICE:
+        valid_device_ids = [self.AND_ID, self.OR_ID, self.NAND_ID, self.NOR_ID, self.XOR_ID, self.NOT_ID, self.SWITCH_ID, self.CLOCK_ID]
+        if self.symbol.id in valid_device_ids:
             device_id = self.symbol.id
             self.get_next_symbol()
             return device_id
