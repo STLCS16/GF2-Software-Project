@@ -51,29 +51,38 @@ class Scanner:
     """
 
     # type ID
-    (HEADINGS, END, DEVICE, IDENTIFIER, NAME, COMMA, SEMICOLON, EQUAL, COLON, DOT, OPEN_PAREN, CLOSE_PAREN, ARROW, NUMBER,EOF ) = range(15)
-    
+    #(HEADINGS, END, DEVICE, IDENTIFIER, NAME, COMMA, SEMICOLON, EQUAL, COLON, DOT, OPEN_PAREN, CLOSE_PAREN, ARROW, NUMBER,EOF ) = range(15)
+    (HEADINGS, END, DEVICE, IDENTIFIER, NAME,
+        COMMA, SEMICOLON, EQUAL, COLON, DOT,
+        OPEN_PAREN, CLOSE_PAREN, ARROW, NUMBER, EOF) = (
+    "HEADINGS", "END", "DEVICE", "IDENTIFIER", "NAME",
+    "COMMA", "SEMICOLON", "EQUAL", "COLON", "DOT",
+    "OPEN_PAREN", "CLOSE_PAREN", "ARROW", "NUMBER", "EOF"
+    )
+
     def __init__(self, path, names):
         self.names = names
         with open(path, 'r') as f:
+            self.file_lines = [line.rstrip('\n') for line in f] # for error reporting
+            f.seek(0)
             self.source_string = f.read()
         
         self.char_index = 0
-        self.line_number = 1
+        self.line_number = 0 #was 1 before?
         self.column_number = 1
         self.current_character = self.source_string[0] if self.source_string else ""
         # heading
         self.heading_list = ["DEVICES", "CONNECTIONS", "SIGNALS"]
         self.names.lookup(self.heading_list) # pre-regist
         #end
-        self.end_list = 'END'
+        self.end_list = ["END"]
         self.names.lookup(self.end_list)
         #device
         self.device_list_ni = ["DTYPE", "XOR","NOT"]#ni means no need to specify number of input
         self.device_list_i = ["AND", "OR", "NAND", "NOR","CLOCK", "SWITCH"] # i means need to specify number of input
         self.names.lookup(self.device_list_ni + self.device_list_i)
         #identifier
-        self.identifier_list = [f'I{i}' for i in range(1, 17)] + ['DATA', 'CLK', 'SET','CLEAR', 'Q','QBAR']
+        self.identifier_list = [f'I{i}' for i in range(1, 17)] + ['D', 'CLK', 'SET','CLEAR', 'Q','QBAR'] #changed DATA to D
         self.names.lookup(self.identifier_list) # avoid user name the device as I1 or other confusing term
         #punctuation
         self.comma = ','
@@ -92,6 +101,23 @@ class Scanner:
         self.device_set = set(self.device_list_ni + self.device_list_i)
         self.identifier_set = set(self.identifier_list)
 
+        # type names dictionary
+        """self.type_names = {self.HEADINGS:"HEADINGS",
+                           self.END: "END",
+                           self.DEVICE: "DEVICE",
+                           self.IDENTIFIER: "IDENTIFIER",
+                           self.NAME: "NAME",
+                           self.COMMA: "COMMA",
+                           self.SEMICOLON: "SEMICOLON",
+                           self.EQUAL: "EQUAL",
+                           self.COLON: "COLON",
+                           self.DOT: "DOT",
+                           self.OPEN_PAREN: "OPEN_PAREN",
+                           self.CLOSE_PAREN: "CLOSE_PAREN",
+                           self.ARROW: "ARROW",
+                           self.NUMBER: "NUMBER",
+                           self.EOF: "EOF"}"""
+
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
         symbol = Symbol()
@@ -104,11 +130,12 @@ class Scanner:
             symbol.type = self.EOF
             return symbol
 
-        if self.current_character.isalpha(): 
+        if self.current_character.isalpha(): #isalnum?
             name_list = self.get_name()
-            name_string = name_list[0]
+            #name_string = name_list[0]
+            name_string = name_list
             symbol.id = self.names.lookup([name_string])[0]
-            if self.name_string.islower():
+            if name_string.islower():
                 return None
             if name_string in self.heading_set:
                 symbol.type = self.HEADINGS
@@ -144,7 +171,7 @@ class Scanner:
             symbol.type = self.CLOSE_PAREN
             self.advance()
         elif self.current_character == "=":
-            symbol.type = self.EQUALS
+            symbol.type = self.EQUAL
             self.advance()
         elif self.current_character == ",":
             symbol.type = self.COMMA

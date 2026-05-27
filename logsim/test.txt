@@ -1,0 +1,26 @@
+DEVICES:
+G1 = XOR;
+G2 = XOR;
+G3 = AND(2);
+G4 = AND(2);
+G5 = OR(2);
+SW1 = SWITCH(0);
+SW2 = SWITCH(0);
+SW3 = SWITCH(0);
+
+CONNECTIONS:
+SW1 -> G1.I1;
+SW2 -> G1.I2;
+SW3 -> G2.I2;
+SW3 -> G3.I1;
+G1 -> G2.I1;
+G1 -> G3.I2;
+SW1 -> G4.I1;
+SW2 -> G4.I2;
+G3 -> G5.I1;
+G4 -> G5.I2;
+
+SIGNALS:
+G2;G5;
+
+END
