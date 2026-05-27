@@ -10,6 +10,8 @@ Parser - parses the definition file and builds the logic network.
 """
 import scanner
 import sys
+import wx
+from gui import Gui
 
 class ParseSyntaxError(Exception):
     """Custom exception raised when a syntax rule is broken."""
