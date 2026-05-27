@@ -101,23 +101,6 @@ class Scanner:
         self.device_set = set(self.device_list_ni + self.device_list_i)
         self.identifier_set = set(self.identifier_list)
 
-        # type names dictionary
-        """self.type_names = {self.HEADINGS:"HEADINGS",
-                           self.END: "END",
-                           self.DEVICE: "DEVICE",
-                           self.IDENTIFIER: "IDENTIFIER",
-                           self.NAME: "NAME",
-                           self.COMMA: "COMMA",
-                           self.SEMICOLON: "SEMICOLON",
-                           self.EQUAL: "EQUAL",
-                           self.COLON: "COLON",
-                           self.DOT: "DOT",
-                           self.OPEN_PAREN: "OPEN_PAREN",
-                           self.CLOSE_PAREN: "CLOSE_PAREN",
-                           self.ARROW: "ARROW",
-                           self.NUMBER: "NUMBER",
-                           self.EOF: "EOF"}"""
-
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
         symbol = Symbol()
