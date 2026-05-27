@@ -104,7 +104,7 @@ class Scanner:
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
         symbol = Symbol()
-        self.skip_spaces() # current character now not whitespace
+        self.skip_spaces_and_comments() # current character now not whitespace
 
         symbol.line = self.line_number
         symbol.column = self.column_number
@@ -115,7 +115,6 @@ class Scanner:
 
         if self.current_character.isalpha(): #isalnum?
             name_list = self.get_name()
-            #name_string = name_list[0]
             name_string = name_list
             symbol.id = self.names.lookup([name_string])[0]
             if name_string.islower():
@@ -189,9 +188,17 @@ class Scanner:
             self.advance()
         return "".join(num_chars)
 
-    def skip_spaces(self):
-        while self.current_character.isspace():
-            self.advance()
+    def skip_spaces_and_comments(self):
+        """Skip both space and comments, comments is anything within quotes"""
+        while self.current_character.isspace() or self.current_character =='"':
+            if self.current_character.isspace():
+                self.advance()
+            elif self.current_character =='"':
+                self.advance()
+                while self.current_character != '"' and self.current_character != "":
+                    self.advance()
+                if self.current_character =='"':
+                    self.advance()
 
     def advance(self):
         self.char_index += 1
@@ -205,3 +212,13 @@ class Scanner:
         else:
             self.current_character = ""  # EOF reached
         return self.current_character
+
+    def print_error_line(self, error_line_number, error_column_number):
+        """Prints the line of code and a caret pointing to the error location."""
+        if error_line_number >= len(self.file_lines):
+            print("Error occurred at the end of the file (unexpected EOF).")
+            return
+        code_line = self.file_lines[error_line_number]
+        pointer_string = (" " * (error_column_number - 1)) + "^"
+        print(code_line)
+        print(pointer_string)
