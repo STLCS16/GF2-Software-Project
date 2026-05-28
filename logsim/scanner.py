@@ -28,7 +28,8 @@ class Symbol:
         self.type = None 
         self.id = None
         self.line = None 
-        self.column = None 
+        self.column = None
+        self.length = 0
 
 class Scanner:
 
@@ -67,6 +68,8 @@ class Scanner:
             f.seek(0)
             self.source_string = f.read()
         
+        #self.symbol = Symbol() #initialise the symbol object
+        
         self.char_index = 0
         self.line_number = 0 #was 1 before?
         self.column_number = 1
@@ -103,74 +106,87 @@ class Scanner:
 
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
-        symbol = Symbol()
         self.skip_spaces_and_comments() # current character now not whitespace
 
-        symbol.line = self.line_number
-        symbol.column = self.column_number
+        self.symbol = Symbol()
+
+        self.symbol.line = self.line_number
+        self.symbol.column = self.column_number
 
         if self.current_character == "":
-            symbol.type = self.EOF
-            return symbol
+            self.symbol.type = self.EOF
+            self.symbol.length = 0
+            return self.symbol
 
-        if self.current_character.isalpha(): #isalnum?
+        if self.current_character.isalpha(): 
             name_list = self.get_name()
             name_string = name_list
-            symbol.id = self.names.lookup([name_string])[0]
+            self.symbol.id = self.names.lookup([name_string])[0]
+            self.symbol.length = len(name_list)
             if name_string.islower():
                 return None
             if name_string in self.heading_set:
-                symbol.type = self.HEADINGS
+                self.symbol.type = self.HEADINGS
             elif name_string in self.end_list:
-                symbol.type = self.END
+                self.symbol.type = self.END
             elif name_string in self.device_set:
-                    symbol.type = self.DEVICE
+                    self.symbol.type = self.DEVICE
             elif name_string in self.identifier_list:
-                    symbol.type = self.IDENTIFIER
+                    self.symbol.type = self.IDENTIFIER
             else:
-                symbol.type = self.NAME
-            return symbol
+                self.symbol.type = self.NAME
+            return self.symbol
                 
         if self.current_character.isdigit(): 
-            symbol.id = self.get_number()
-            symbol.type = self.NUMBER
-            return symbol
+            self.symbol.id = self.get_number()
+            self.symbol.type = self.NUMBER
+            self.symbol.length = len(self.symbol.id)
+            return self.symbol
         
         #punctuation
         elif self.current_character == ";":
-            symbol.type = self.SEMICOLON
+            self.symbol.type = self.SEMICOLON
+            self.symbol.length = 1
             self.advance()
         elif self.current_character == ":":
-            symbol.type = self.COLON
+            self.symbol.type = self.COLON
+            self.symbol.length = 1
             self.advance()
         elif self.current_character == ".":
-            symbol.type = self.DOT
+            self.symbol.type = self.DOT
+            self.symbol.length = 1
             self.advance()
         elif self.current_character == "(":
-            symbol.type = self.OPEN_PAREN
+            self.symbol.type = self.OPEN_PAREN
+            self.symbol.length = 1
             self.advance()
         elif self.current_character == ")":
-            symbol.type = self.CLOSE_PAREN
+            self.symbol.type = self.CLOSE_PAREN
+            self.symbol.length = 1
             self.advance()
         elif self.current_character == "=":
-            symbol.type = self.EQUAL
+            self.symbol.type = self.EQUAL
+            self.symbol.length = 1
             self.advance()
         elif self.current_character == ",":
-            symbol.type = self.COMMA
+            self.symbol.type = self.COMMA
+            self.symbol.length = 1
             self.advance()
         elif self.current_character == "-":
             self.advance()
             if self.current_character == ">":
-                symbol.type = self.ARROW
+                self.symbol.type = self.ARROW
+                self.symbol.length = 2
                 self.advance()
             else:
-                symbol.type = self.EOF # Or handle as invalid character
+                self.symbol.type = self.EOF # Or handle as invalid character
+                self.symbol.length = 0
             
         else:
             self.advance()
             return None
         
-        return symbol
+        return self.symbol
 
     def get_name(self):
         """Builds a string of alphanumeric characters."""
@@ -206,7 +222,7 @@ class Scanner:
             self.current_character = self.source_string[self.char_index]
             if self.current_character == '\n':
                 self.line_number += 1
-                self.column_number = 1
+                self.column_number = 0
             else:
                 self.column_number += 1
         else:
