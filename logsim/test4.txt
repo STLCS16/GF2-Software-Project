@@ -1,0 +1,14 @@
+DEVICES:
+C = CLOCK(1);
+G1 = XOR;
+SW1 = SWITCH(0);
+
+CONNECTIONS:
+C -> G1.I1;
+SW1 -> G1.I2;
+
+SIGNALS:
+G1;
+C;
+
+END
