@@ -114,33 +114,62 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Draw useful status text at the top-left of the canvas.
         self.render_text(self.display_text, 10, size.height - 20)
 
-        # Draw placeholder traces. Replace this block later with code that reads
-        # the real monitor traces from self.monitors.
-        self.draw_placeholder_traces()
+        
+
+        self.draw_monitor_traces()
 
         # We have been drawing to the back buffer, so flush the graphics
         # pipeline and swap the back buffer to the front.
         GL.glFlush()
         self.SwapBuffers()
 
-    def draw_placeholder_traces(self):
-        """Draw simple dummy traces until real monitor data is connected."""
-        start_x = 80
-        step_x = 30
-        low_y = 90
-        high_y = 120
+    def draw_monitor_traces(self):
+        start_x = 100
+        start_y = 80
+        step_x = 25
+        trace_gap = 60
+        trace_height = 25
 
-        self.render_text("Example trace", 10, high_y)
+      # Draw each monitored signal on a separate horizontal line.
+        for trace_index, (device_id, output_id) in enumerate(
+            self.monitors.monitors_dictionary):
 
-        GL.glColor3f(0.0, 0.0, 1.0)
-        GL.glBegin(GL.GL_LINE_STRIP)
-        for i in range(12):
-            x = start_x + i * step_x
-            x_next = start_x + (i + 1) * step_x
-            y = high_y if i % 2 else low_y
-            GL.glVertex2f(x, y)
-            GL.glVertex2f(x_next, y)
-        GL.glEnd()
+            signal_list = self.monitors.monitors_dictionary[
+            (device_id, output_id)]
+
+        # Get a readable signal name
+            signal_name = self.devices.get_signal_name(device_id, output_id)
+
+            low_y = start_y + trace_index * trace_gap
+            high_y = low_y + trace_height
+
+        # Draw the signal name on the left.
+            self.render_text(signal_name, 10, low_y)
+
+            GL.glColor3f(0.0, 0.0, 1.0)
+            GL.glBegin(GL.GL_LINE_STRIP)
+
+            for i, signal in enumerate(signal_list):
+                x = start_x + i * step_x
+
+                if signal == self.devices.HIGH:
+                    y = high_y
+                elif signal == self.devices.LOW:
+                    y = low_y
+                elif signal == self.devices.RISING:
+                    y = high_y
+                elif signal == self.devices.FALLING:
+                    y = low_y
+                elif signal == self.devices.BLANK:
+                # For blank values, do not draw a useful signal.
+                # draw it at low level for simplicity.
+                    y = low_y
+                else:
+                    y = low_y
+
+                GL.glVertex2f(x, y)
+
+            GL.glEnd()
 
     def on_paint(self, event):
         """Handle the paint event."""
