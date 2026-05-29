@@ -52,6 +52,7 @@ class Parser:
         self.network = network
         self.monitors = monitors
         self.symbol = Symbol()
+        self.error_count = 0
 
         self.current_line = 0
         self.current_column = 0
@@ -78,7 +79,6 @@ class Parser:
         # skeleton code. When complete, should return False when there are
         # errors in the circuit definition file.
         #return True
-        error_count = 0
         try:
             self.get_next_symbol()
         #device
@@ -99,8 +99,8 @@ class Parser:
                 try:
                     self.assignment()
                 except(ParseSyntaxError, ParseSemanticError):
-                    error_count += 1
-                    self.synchronise()
+                    pass
+                    #self.synchronise()
             self.get_next_symbol()
         # connections
             if self.symbol.type != self.scanner.COLON:
@@ -115,8 +115,8 @@ class Parser:
                 try:
                     self.connection()
                 except (ParseSyntaxError, ParseSemanticError):
-                    error_count += 1
-                    self.synchronise()
+                    pass
+                    #self.synchronise()
         # signals
             self.get_next_symbol()
 
@@ -128,7 +128,7 @@ class Parser:
             try:
                 self.signals()
             except(ParseSyntaxError, ParseSemanticError):
-                    error_count += 1
+                    pass
         #ending
             if self.symbol.type != self.scanner.END:
                 self.error(False, "Expected 'END' header.",False)
@@ -138,7 +138,7 @@ class Parser:
             if self.symbol.type != self.scanner.EOF:
                 self.error(False, "Expected no more text after 'END'. Expected end of file.",False)
                 return False
-            return error_count == 0
+            return self.error_count == 0
         except (ParseSyntaxError, ParseSemanticError):
             print("Parser execution halted prematurely due to catastrophic structural flaws.")
             return False
@@ -316,6 +316,7 @@ class Parser:
     def error(self, error_type, message, end):
         #error type will be a boolean (False if syntax error and True if semantic error)
         #message will represent the error message
+        self.error_count += 1
         if end:
             error_line = self.previous_line
             error_column = self.previous_column + self.previous_symbol_length
@@ -326,15 +327,17 @@ class Parser:
         print(error_message_list[error_type])
         self.scanner.print_error_line(error_line, error_column)
         print(f"Details:{message}\n")
-        #sys.exit("Parse error")
+        if not end:
+            self.synchronise()
         return False
-    
+
     def synchronise(self):
-    #Discard tokens until we find a statement boundary.
         while self.symbol.type != self.scanner.EOF:
-            if self.symbol.type == self.scanner.SEMICOLON:
-                self.get_next_symbol() 
-                return
             if self.symbol.id in [self.CONNECTIONS_ID, self.SIGNALS_ID]:
-                return  
+                return
+
+            if self.symbol.type == self.scanner.SEMICOLON:
+                self.get_next_symbol()
+                return
+
             self.get_next_symbol()
