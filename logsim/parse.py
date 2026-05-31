@@ -223,7 +223,7 @@ class Parser:
             if device_id == self.XOR_ID:
                 parameter = None
             if device_id == self.NOT_ID:
-                parameter = 1
+                parameter = None
         error_code = self.devices.make_device(name_id, device_id, parameter)
         if error_code != self.devices.NO_ERROR:
             if error_code == self.devices.DEVICE_PRESENT: 
