@@ -199,7 +199,7 @@ class Parser:
             if parameter is None:
                 self.error(True, "Number of Input is required",False)
                 raise ParseSemanticError()
-            if not (1 <= parameter <= 16):
+            if not (2 <= parameter <= 16):
                 self.error(True, "Number of Input is not valid",False)
                 raise ParseSemanticError()
         elif device_id == self.SWITCH_ID:
@@ -221,9 +221,9 @@ class Parser:
                 self.error(True, "Number of Input is not allowed to change for this device",False)
                 raise ParseSemanticError()
             if device_id == self.XOR_ID:
-                parameter = 2
+                parameter = None
             if device_id == self.NOT_ID:
-                parameter = 1
+                parameter = None
         error_code = self.devices.make_device(name_id, device_id, parameter)
         if error_code != self.devices.NO_ERROR:
             if error_code == self.devices.DEVICE_PRESENT: 
@@ -232,6 +232,8 @@ class Parser:
                 self.error(True, "The backend does not support this device type definition.",False)
             elif error_code == self.devices.INVALID_QUALIFIER:                    
                 self.error(True, "The specified initialization parameter is invalid.",False)
+            elif error_code == self.devices.QUALIFIER_PRESENT:
+                self.error(True, "No qualifier expected for this device.",False)
             else:
                 self.error(True, f"Unhandled device creation error code: {error_code}",False)
             raise ParseSemanticError()
@@ -293,9 +295,9 @@ class Parser:
         #semantic
             error_code = self.monitors.make_monitor(name_id, identifier_id)
             if error_code != self.monitors.NO_ERROR:
-                if error_code == self.monitors.NETWORK_ERROR:
-                    self.error(True, "Cannot monitor a device that has not been defined.",False)
-                elif error_code == self.monitors.NOT_OUTPUT:
+                #if error_code == self.monitors.NETWORK_ERROR:
+                    #self.error(True, "Cannot monitor a device that has not been defined.",False)
+                if error_code == self.monitors.NOT_OUTPUT:
                     self.error(True, "Only explicit device output pins (e.g., Q, QBAR) or simple gates can be monitored.",False)
                 elif error_code == self.monitors.MONITOR_PRESENT:
                     self.error(True, "This exact device signal target is already tracked under active monitors.",False)

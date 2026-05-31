@@ -36,6 +36,10 @@ G2 -> D2.DATA;
 C -> D1.CLK;
 C -> D2.CLK;
 D1.Q -> G5.I2;
+SW5 -> D1.SET;
+SW7 -> D1.CLEAR;
+SW6 -> D2.SET;
+SW8 -> D2.CLEAR;
 
 SIGNALS:
 D1.Q; D2.Q;

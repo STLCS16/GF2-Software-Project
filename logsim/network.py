@@ -360,6 +360,7 @@ class Network:
         nand_devices = self.devices.find_devices(self.devices.NAND)
         nor_devices = self.devices.find_devices(self.devices.NOR)
         xor_devices = self.devices.find_devices(self.devices.XOR)
+        not_devices = self.devices.find_devices(self.devices.NOT)
 
         # This sets clock signals to RISING or FALLING, where necessary
         self.update_clocks()
@@ -402,6 +403,9 @@ class Network:
                     return False
             for device_id in xor_devices:  # execute XOR devices
                 if not self.execute_gate(device_id, None, None):
+                    return False
+            for device_id in not_devices: # execute NOT devices
+                if not self.execute_gate(device_id, self.devices.HIGH, self.devices.LOW):
                     return False
             if self.steady_state:
                 break
