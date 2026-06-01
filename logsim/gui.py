@@ -58,8 +58,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.init = False
         self.context = wxcanvas.GLContext(self)
 
-        # Store references to simulator objects. These are not used much in the
-        # dummy drawing code below, but will be useful when drawing real traces.
+        # Store references to simulator objects. 
+
         self.devices = devices
         self.monitors = monitors
 
@@ -161,8 +161,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 elif signal == self.devices.FALLING:
                     y = low_y
                 elif signal == self.devices.BLANK:
-                # For blank values, do not draw a useful signal.
-                # draw it at low level for simplicity.
+                
                     y = low_y
                 else:
                     y = low_y
@@ -293,16 +292,15 @@ class Gui(wx.Frame):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(800, 600))
 
-        # Store references to the simulator objects. The GUI should call these
-        # modules rather than doing the simulation itself.
+        # Store references to the simulator objects. 
+
         self.path = path
         self.names = names
         self.devices = devices
         self.network = network
         self.monitors = monitors
 
-        # These variables support step-by-step running. The use of wx.CallLater
-        # keeps the GUI responsive, so the Stop button can interrupt a run.
+       
         self.is_running = False
         self.cycles_remaining = 0
         self.cycles_completed = 0
@@ -318,7 +316,7 @@ class Gui(wx.Frame):
         # Create the main canvas. This occupies the top 2/3 of the window.
         self.canvas = MyGLCanvas(self, devices, monitors)
 
-        # Create the bottom terminal panel. This occupies the bottom 1/3.
+        # Create the bottom terminal panel.
         terminal_panel = wx.Panel(self)
         terminal_sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -338,20 +336,39 @@ class Gui(wx.Frame):
                                       style=wx.TE_MULTILINE |
                                       wx.TE_READONLY)
 
+        # Read-only box showing the current value of each switch.
+        self.switch_box = wx.TextCtrl(
+            terminal_panel,
+            wx.ID_ANY,
+            "",
+            style=wx.TE_MULTILINE | wx.TE_READONLY
+)
         # The terminal input. The user can type commands such as r 10, c 5,
         # s SW1 1, m G1, z G1 and q.
         self.text_box = wx.TextCtrl(terminal_panel, wx.ID_ANY, "",
                                     style=wx.TE_PROCESS_ENTER)
 
-        # Put the toolbar above the terminal output and command input.
+        # Add the toolbar row at the top of the terminal panel.
         terminal_sizer.Add(toolbar_sizer, 0, wx.EXPAND | wx.ALL, 5)
-        terminal_sizer.Add(self.output_box, 1, wx.EXPAND |
+
+       # Put the info box and output box side by side.
+        info_output_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        info_output_sizer.Add(self.output_box, 2, wx.EXPAND)
+        info_output_sizer.Add(self.switch_box, 1, wx.EXPAND | wx.RIGHT, 5)
+        
+
+        # Add the side-by-side boxes to the terminal panel.
+        terminal_sizer.Add(info_output_sizer, 1, wx.EXPAND |
                            wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+
+        # Add the command input box underneath.
         terminal_sizer.Add(self.text_box, 0, wx.EXPAND |
                            wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+
         terminal_panel.SetSizer(terminal_sizer)
 
-        # Main vertical layout: canvas top 2/3, terminal panel bottom 1/3.
+        # Main vertical layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(self.canvas, 2, wx.EXPAND | wx.ALL, 5)
         main_sizer.Add(terminal_panel, 1, wx.EXPAND | wx.ALL, 5)
@@ -367,6 +384,7 @@ class Gui(wx.Frame):
         self.SetSizer(main_sizer)
         self.Layout()
         self.write_output("Ready. Type commands such as r 10, c 5, m G1.")
+        self.update_switch_box()
 
     def on_menu(self, event):
         """Handle the event when the user selects a menu item."""
@@ -417,6 +435,23 @@ class Gui(wx.Frame):
         command = self.text_box.GetValue().strip()
         self.process_command(command)
         self.text_box.Clear()
+
+    def update_switch_box(self):
+
+        switch_text = "Switch values:\n"
+
+        for device_id in self.devices.find_devices():
+            device = self.devices.get_device(device_id)
+
+        # Only display SWITCH devices.
+            if device.device_kind == self.devices.SWITCH:
+                switch_name = self.names.get_name_string(device_id)
+
+                switch_value = device.switch_state
+
+                switch_text += switch_name + " = " + str(switch_value) + "\n"
+                self.switch_box.SetValue(switch_text)
+
 
     def process_command(self, command):
         """Interpret a terminal command and call the appropriate method."""
@@ -479,6 +514,8 @@ class Gui(wx.Frame):
         self.do_set_switch(switch_name, switch_value)
         self.canvas.render("Switch " + switch_name + " set to " +
                            str(switch_value) + ".")
+        # Refresh the info box after changing the switch value.
+        self.update_switch_box()
 
     def handle_monitor_command(self, parts):
         """Process m X: add a monitor on signal X."""
@@ -559,12 +596,10 @@ class Gui(wx.Frame):
         self.cycles_remaining -= 1
         self.cycles_completed += 1
 
-        # Redraw the canvas after each cycle. Later, render() should draw real
-        # traces using data from self.monitors.
+        # Redraw the canvas after each cycle.
         self.canvas.render("Cycle " + str(self.cycles_completed))
 
-        # Schedule the next cycle after a short delay. The delay can be reduced
-        # or increased depending on how fast you want the GUI to update.
+        # Schedule the next cycle after a short delay.
         wx.CallLater(50, self.run_next_cycle)
 
     def do_prepare_fresh_run(self):
@@ -588,8 +623,6 @@ class Gui(wx.Frame):
     def do_set_switch(self, switch_name, switch_value):
         """Set a switch value using the devices module."""
 
-        # Use query rather than lookup if available, because lookup may add an
-        # unknown user-typed name to the name table.
         switch_id = self.names.query(switch_name)
         if switch_id is None:
             self.write_output("Error: unknown switch " + switch_name + ".")
