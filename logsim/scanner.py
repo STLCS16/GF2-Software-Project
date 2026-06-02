@@ -235,6 +235,7 @@ class Scanner:
             print("Error occurred at the end of the file (unexpected EOF).")
             return
         code_line = self.file_lines[error_line_number]
-        pointer_string = (" " * (error_column_number - 1)) + "^"
-        print(code_line)
+        pointer_string = (" " * ((error_column_number - 1)+len(str(error_line_number+1))+8)) + "^"
+        print("Line",error_line_number + 1, ":",code_line)
+        #print(code_line)
         print(pointer_string)
