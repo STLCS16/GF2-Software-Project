@@ -383,7 +383,7 @@ class Gui(wx.Frame):
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
         self.Layout()
-        self.write_output("Ready. Type commands such as r 10, c 5, m G1.")
+        self.write_output("Ready. Type h for help")
         self.update_switch_box()
 
     def on_menu(self, event):
@@ -403,7 +403,7 @@ class Gui(wx.Frame):
         """
         command = self.text_box.GetValue().strip()
         if not command:
-            command = "r 10"
+            command = "r 20"
         self.process_command(command)
         self.text_box.Clear()
 
@@ -475,6 +475,8 @@ class Gui(wx.Frame):
             self.handle_zap_command(parts)
         elif command_type == "q":
             self.Close(True)
+        elif command_type == "h":
+            self.write_output("The run button run simulation for 20 cycles\nRun for N cycles: r N\nSet the value of switch N: s SWN 1 or s SWN 0\nAdd a monitor on Gate N: m GN\nRemove a monitor on Gate N: z GN\nPress the stop button to pause the simulation\nPress the continue button to resume the simulation")
         else:
             self.write_output("Error: unknown command '" + command_type + "'.")
 
@@ -536,7 +538,14 @@ class Gui(wx.Frame):
         signal_name = parts[1]
         self.do_remove_monitor(signal_name)
         self.canvas.render("Monitor removed from " + signal_name + ".")
-
+    
+    def handle_help_command(self, parts):
+        """Process r N: run the simulation from a fresh start."""
+        cycles = self.get_cycle_argument(parts, "h")
+        if cycles is None:
+            return
+        
+    
     def get_cycle_argument(self, parts, usage):
         """Return the number of cycles from a run or continue command."""
         if len(parts) != 2:
