@@ -145,7 +145,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Draw the signal name on the left.
             self.render_text(signal_name, 10, low_y)
-
+            self.render_text("1", 50, high_y)
+            self.render_text("0", 50, low_y)
             GL.glColor3f(0.0, 0.0, 1.0)
             GL.glBegin(GL.GL_LINE_STRIP)
 
