@@ -94,7 +94,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glLoadIdentity()
         GL.glTranslated(self.pan_x, self.pan_y, 0.0)
         GL.glScaled(self.zoom, self.zoom, self.zoom)
-
+        GL.glTranslated(self.pan_x, self.pan_y, 0.0)
+        GL.glScaled(self.zoom, self.zoom, self.zoom)
     def render(self, text=None):
         """Handle all drawing operations."""
         self.SetCurrent(self.context)
@@ -125,7 +126,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def draw_monitor_traces(self):
         start_x = 100
-        start_y = 80
+        start_y = 230
         step_x = 25
         trace_gap = 60
         trace_height = 25
@@ -140,7 +141,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Get a readable signal name
             signal_name = self.devices.get_signal_name(device_id, output_id)
 
-            low_y = start_y + trace_index * trace_gap
+            low_y = start_y - trace_index * trace_gap
             high_y = low_y + trace_height
 
         # Draw the signal name on the left.
@@ -259,7 +260,19 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 GL.glRasterPos2f(x_pos, y_pos)
             else:
                 GLUT.glutBitmapCharacter(font, ord(character))
+    
+    def set_horizontal_scroll(self, value):
+        """Set horizontal pan from the scrollbar value."""
+        self.pan_x = -value
+        self.init = False
+        self.Refresh()
 
+
+    def set_vertical_scroll(self, value):
+        """Set vertical pan from the scrollbar value."""
+        self.pan_y = value
+        self.init = False
+        self.Refresh()
 
 class Gui(wx.Frame):
     """Configure the main window and all the widgets.
@@ -316,6 +329,42 @@ class Gui(wx.Frame):
 
         # Create the main canvas. This occupies the top 2/3 of the window.
         self.canvas = MyGLCanvas(self, devices, monitors)
+        canvas_panel = wx.Panel(self)
+        canvas_outer_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        canvas_row_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.canvas = MyGLCanvas(canvas_panel, devices, monitors)
+
+        self.v_scroll = wx.Slider(
+            canvas_panel,
+            wx.ID_ANY,
+            value=0,
+            minValue=0,
+            maxValue=1000,
+            style=wx.SL_VERTICAL
+        )
+
+        self.h_scroll = wx.Slider(
+            canvas_panel,
+            wx.ID_ANY,
+            value=0,
+            minValue=0,
+            maxValue=1000,
+            style=wx.SL_HORIZONTAL
+        )
+
+        canvas_row_sizer.Add(self.canvas, 1, wx.EXPAND)
+        canvas_row_sizer.Add(self.v_scroll, 0, wx.EXPAND | wx.LEFT, 5)
+
+        canvas_outer_sizer.Add(canvas_row_sizer, 1, wx.EXPAND | wx.ALL, 5)
+        canvas_outer_sizer.Add(self.h_scroll, 0, wx.EXPAND |
+                               wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+
+        canvas_panel.SetSizer(canvas_outer_sizer)
+
+        self.h_scroll.Bind(wx.EVT_SLIDER, self.on_horizontal_scroll)
+        self.v_scroll.Bind(wx.EVT_SLIDER, self.on_vertical_scroll)
 
         # Create the bottom terminal panel.
         terminal_panel = wx.Panel(self)
@@ -371,7 +420,7 @@ class Gui(wx.Frame):
 
         # Main vertical layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(self.canvas, 2, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(canvas_panel, 2, wx.EXPAND | wx.ALL, 5)
         main_sizer.Add(terminal_panel, 1, wx.EXPAND | wx.ALL, 5)
 
         # Bind events to widgets.
@@ -380,13 +429,17 @@ class Gui(wx.Frame):
         self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
         self.stop_button.Bind(wx.EVT_BUTTON, self.on_stop_button)
         self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
+        self.h_scroll.Bind(wx.EVT_SLIDER, self.on_horizontal_scroll)
+        self.v_scroll.Bind(wx.EVT_SLIDER, self.on_vertical_scroll)
 
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
         self.Layout()
         self.write_output("Ready. Type h for help")
         self.update_switch_box()
-
+        
+        self.h_scroll.Bind(wx.EVT_SLIDER, self.on_horizontal_scroll)
+        self.v_scroll.Bind(wx.EVT_SLIDER, self.on_vertical_scroll)
     def on_menu(self, event):
         """Handle the event when the user selects a menu item."""
         Id = event.GetId()
@@ -663,6 +716,17 @@ class Gui(wx.Frame):
 
         self.monitors.remove_monitor(device_id, output_id)
         self.write_output("Removed monitor from " + signal_name + ".")
+    
+    def on_horizontal_scroll(self, event):
+        """Move the canvas view horizontally."""
+        value = self.h_scroll.GetValue()
+        self.canvas.set_horizontal_scroll(value)
+
+
+    def on_vertical_scroll(self, event):
+        """Move the canvas view vertically."""
+        value = self.v_scroll.GetValue()
+        self.canvas.set_vertical_scroll(value)
 
     def write_output(self, message):
         """Write a message into the terminal output box."""
