@@ -117,43 +117,56 @@ class Network:
         first_device = self.devices.get_device(first_device_id)
         second_device = self.devices.get_device(second_device_id)
 
-        if first_device is None or second_device is None:
+        if first_device is None:
             error_type = self.DEVICE_ABSENT
+            error_device = 0
+        elif second_device is None:
+            error_type = self.DEVICE_ABSENT
+            error_device = 2
 
         elif first_port_id in first_device.inputs:
             if first_device.inputs[first_port_id] is not None:
                 # Input is already in a connection
                 error_type = self.INPUT_CONNECTED
+                error_device = 1
             elif second_port_id in second_device.inputs:
                 # Both ports are inputs
                 error_type = self.INPUT_TO_INPUT
+                error_device = 1
             elif second_port_id in second_device.outputs:
                 # Make connection
                 first_device.inputs[first_port_id] = (second_device_id,
                                                       second_port_id)
                 error_type = self.NO_ERROR
+                error_device = None
             else:  # second_port_id is not a valid input or output port
                 error_type = self.PORT_ABSENT
+                error_device = 3
 
         elif first_port_id in first_device.outputs:
             if second_port_id in second_device.outputs:
                 # Both ports are outputs
                 error_type = self.OUTPUT_TO_OUTPUT
+                error_device = 3
             elif second_port_id in second_device.inputs:
                 if second_device.inputs[second_port_id] is not None:
                     # Input is already in a connection
                     error_type = self.INPUT_CONNECTED
+                    error_device = 3
                 else:
                     second_device.inputs[second_port_id] = (first_device_id,
                                                             first_port_id)
                     error_type = self.NO_ERROR
+                    error_device = None
             else:
                 error_type = self.PORT_ABSENT
+                error_device = 3
 
         else:  # first_port_id not a valid input or output port
             error_type = self.PORT_ABSENT
+            error_device = 1
 
-        return error_type
+        return error_type,error_device
 
     def check_network(self):
         """Return True if all inputs in the network are connected."""

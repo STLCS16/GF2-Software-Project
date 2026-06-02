@@ -57,10 +57,6 @@ class Parser:
         self.current_line = 0
         self.current_column = 0
 
-        self.assignment_dict = {"identifier":None,"device":None,"parameter":None}
-        self.connection_dict = {"LHS_identifier":None,"LHS_output":None,"RHS_identifier":None, "RHS_input":None}
-        self.signals_dict = {}
-
         self.previous_line = 0
         self.previous_column = 0
         self.previous_symbol_length = 0
@@ -169,7 +165,6 @@ class Parser:
     def assignment(self):
         #syntax
         name_id = self.name()
-        self.assignment_dict["identifier"] = self.current_column
 
         if self.symbol.type != self.scanner.EQUAL:
             self.error(False, "Invalid assignment. Expected '=' sign.",False)
@@ -177,7 +172,6 @@ class Parser:
         self.get_next_symbol()
 
         device_id = self.device()
-        self.assignment_dict["device"] = self.current_column
 
         parameter = None
         if self.symbol.type == self.scanner.OPEN_PAREN:
@@ -188,7 +182,6 @@ class Parser:
                 self.error(False, "Invalid parameter. Expected a number.",False)
                 raise ParseSyntaxError()
             
-            self.assignment_dict["parameter"] = self.current_column
             parameter = int(self.symbol.id)
             self.get_next_symbol()
 
@@ -248,43 +241,35 @@ class Parser:
 
     def terminal(self):
         name_id = self.name()
-        name_col = self.current_column
         identifier_id = None
 
         if self.symbol.type == self.scanner.DOT:
             self.get_next_symbol()
             if self.symbol.type == self.scanner.IDENTIFIER:
                 identifier_id = self.symbol.id
-                ident_col = self.current_column
                 self.get_next_symbol()
             else:
                 self.error(False, "Invalid terminal. Expected a input/output name after the '.'.",False)
                 raise ParseSyntaxError()
             
-        return name_id, identifier_id, name_col, ident_col
+        return name_id, identifier_id
         
     def connection(self):
         #syntax
-        name_id_1, identifier_id_1, name_col1, ident_col1 = self.terminal()
-        self.connection_dict["LHS_identifier"] = name_col1
-        self.connection_dict["LHS_output"] = ident_col1
+        name_id_1, identifier_id_1 = self.terminal()
         if self.symbol.type != self.scanner.ARROW:
             self.error(False, "Invalid connection. Expected '->' after the terminal.",False)
             raise ParseSyntaxError()
         self.get_next_symbol()
-        name_id_2, identifier_id_2, name_col2, ident_col2 = self.terminal()
-        self.connection_dict["RHS_identifier"] = name_col2
-        self.connection_dict["LHS_input"] = ident_col2
-
-        #semantic
-        if name_id_1 == name_id_2 and identifier_id_1 == identifier_id_2:
-            self.error(True,"A terminal must not be connected to itself.",False)
-            raise ParseSemanticError()
+        name_id_2, identifier_id_2 = self.terminal()
 
         if self.symbol.type != self.scanner.SEMICOLON:
             self.error(False, "Expected ';' at the end of line.",True)
             raise ParseSyntaxError()
-        
+        #semantic
+        if name_id_1 == name_id_2 and identifier_id_1 == identifier_id_2:
+            self.error(True,"A terminal must not be connected to itself.",False)
+            raise ParseSemanticError()
         error_code = self.network.make_connection(name_id_1, identifier_id_1, name_id_2, identifier_id_2)
         if error_code != self.network.NO_ERROR:
             if error_code == self.network.DEVICE_ABSENT:
@@ -303,8 +288,7 @@ class Parser:
     def signals(self):
         #syntax
         while self.symbol.type != self.scanner.END:
-            name_id, identifier_id, name_col, ident_col = self.terminal()
-            self.signals_dict[""]
+            name_id, identifier_id = self.terminal()
             if self.symbol.type != self.scanner.SEMICOLON:
                 self.error(False, "Expected ';' at the end of line.",True)
                 raise ParseSyntaxError()
