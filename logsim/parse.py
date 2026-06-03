@@ -153,8 +153,6 @@ class Parser:
             self.get_next_symbol()
             return name_id
         else:
-            print(self.symbol.type)
-            print(self.scanner.NAME)
             self.error(False, "Invalid assignment. Expected a component name.",False)
             raise ParseSyntaxError()
 

@@ -55,10 +55,10 @@ class Scanner:
     #(HEADINGS, END, DEVICE, IDENTIFIER, NAME, COMMA, SEMICOLON, EQUAL, COLON, DOT, OPEN_PAREN, CLOSE_PAREN, ARROW, NUMBER,EOF ) = range(15)
     (HEADINGS, END, DEVICE, IDENTIFIER, NAME,
         COMMA, SEMICOLON, EQUAL, COLON, DOT,
-        OPEN_PAREN, CLOSE_PAREN, ARROW, NUMBER, EOF) = (
+        OPEN_PAREN, CLOSE_PAREN, ARROW, NUMBER, EOF, INVALID) = (
     "HEADINGS", "END", "DEVICE", "IDENTIFIER", "NAME",
     "COMMA", "SEMICOLON", "EQUAL", "COLON", "DOT",
-    "OPEN_PAREN", "CLOSE_PAREN", "ARROW", "NUMBER", "EOF"
+    "OPEN_PAREN", "CLOSE_PAREN", "ARROW", "NUMBER", "EOF", "INVALID"
     )
 
     def __init__(self, path, names):
@@ -179,12 +179,12 @@ class Scanner:
                 self.symbol.length = 2
                 self.advance()
             else:
-                self.symbol.type = self.EOF # Or handle as invalid character
+                self.symbol.type = self.INVALID # Or handle as invalid character
                 self.symbol.length = 0
             
         else:
             self.advance()
-            return None
+            self.symbol.type = self.INVALID
         
         return self.symbol
 
