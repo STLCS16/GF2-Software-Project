@@ -8,21 +8,28 @@ Classes
 -------
 Parser - parses the definition file and builds the logic network.
 """
+
 import scanner
 from scanner import Symbol
 import sys
 import wx
 
+
 class ParseSyntaxError(Exception):
     """Custom exception raised when a syntax rule is broken."""
+
     pass
+
+
 class ParseSemanticError(Exception):
     pass
+
+
 class DefFileError(Exception):
     pass
 
-class Parser:
 
+class Parser:
     """Parse the definition file and build the logic network.
 
     The parser deals with error handling. It analyses the syntactic and
@@ -57,7 +64,11 @@ class Parser:
         self.current_line = 0
         self.current_column = 0
 
-        self.assignment_dict = {"identifier":None,"device":None,"parameter":None}
+        self.assignment_dict = {
+            "identifier": None,
+            "device": None,
+            "parameter": None,
+        }
         self.connection_dict = {}
         self.signals_dict = {}
 
@@ -82,99 +93,133 @@ class Parser:
         # For now just return True, so that userint and gui can run in the
         # skeleton code. When complete, should return False when there are
         # errors in the circuit definition file.
-        #return True
+        # return True
         try:
             self.get_next_symbol()
-        #device
+            # device
             if self.symbol.id != self.DEVICES_ID:
-                self.error(False,"Expected 'DEVICES' header.",False) 
+                self.error(False, "Expected 'DEVICES' header.", False)
                 raise ParseSyntaxError()
             self.get_next_symbol()
-            
+
             if self.symbol.type != self.scanner.COLON:
-                self.error(False, "Expected ':' at the end of line.",True)
+                self.error(False, "Expected ':' at the end of line.", True)
                 raise ParseSyntaxError()
             self.get_next_symbol()
 
             while self.symbol.id != self.CONNECTIONS_ID:
                 if self.symbol.type == self.scanner.EOF:
-                    self.error(False, "Unexpected end of file while looking for 'CONNECTIONS'.", False)
+                    self.error(
+                        False,
+                        "Unexpected end of file while looking for"
+                        " 'CONNECTIONS'.",
+                        False,
+                    )
                     return False
                 try:
                     self.assignment()
-                except(ParseSyntaxError, ParseSemanticError):
+                except (ParseSyntaxError, ParseSemanticError):
                     pass
-                    #self.synchronise()
+                    # self.synchronise()
             self.get_next_symbol()
-        # connections
+            # connections
             if self.symbol.type != self.scanner.COLON:
-                self.error(False, "Expected ':' at the end of line.",True)
+                self.error(False, "Expected ':' at the end of line.", True)
                 raise ParseSyntaxError()
             self.get_next_symbol()
 
             while self.symbol.id != self.SIGNALS_ID:
                 if self.symbol.type == self.scanner.EOF:
-                    self.error(False, "Unexpected end of file while looking for 'SIGNALS'.",False)
+                    self.error(
+                        False,
+                        "Unexpected end of file while looking for 'SIGNALS'.",
+                        False,
+                    )
                     return False
                 try:
                     self.connection()
                 except (ParseSyntaxError, ParseSemanticError):
                     pass
-                    #self.synchronise()
-        # signals
+                    # self.synchronise()
+            # signals
             self.get_next_symbol()
 
             if self.symbol.type != self.scanner.COLON:
-                self.error(False, "Expected ':' at the end of line.",True)
+                self.error(False, "Expected ':' at the end of line.", True)
                 raise ParseSyntaxError()
             self.get_next_symbol()
 
             try:
                 self.signals()
-            except(ParseSyntaxError, ParseSemanticError):
-                    pass
-        #ending
+            except (ParseSyntaxError, ParseSemanticError):
+                pass
+            # ending
             if self.symbol.type != self.scanner.END:
-                self.error(False, "Expected 'END' header.",False)
+                self.error(False, "Expected 'END' header.", False)
                 return False
             self.get_next_symbol()
 
             if self.symbol.type != self.scanner.EOF:
-                self.error(False, "Expected no more text after 'END'. Expected end of file.",False)
+                self.error(
+                    False,
+                    "Expected no more text after 'END'. Expected end of file.",
+                    False,
+                )
                 return False
             return self.error_count == 0
         except (ParseSyntaxError, ParseSemanticError):
-            print("Parser execution halted prematurely due to catastrophic structural flaws.")
+            print(
+                "Parser execution halted prematurely due to"
+                " catastrophic structural flaws."
+            )
             return False
 
     def name(self):
         if self.symbol.type == self.scanner.NAME:
-            name_id= self.symbol.id
+            name_id = self.symbol.id
             self.get_next_symbol()
             return name_id
         else:
             print(self.symbol.type)
             print(self.scanner.NAME)
-            self.error(False, "Invalid assignment. Expected a component name.",False)
+            self.error(
+                False, "Invalid assignment. Expected a component name.", False
+            )
             raise ParseSyntaxError()
 
     def device(self):
-        valid_device_ids = [self.AND_ID, self.OR_ID, self.NAND_ID, self.NOR_ID, self.XOR_ID, self.NOT_ID, self.SWITCH_ID, self.CLOCK_ID, self.DTYPE_ID]
+        valid_device_ids = [
+            self.AND_ID,
+            self.OR_ID,
+            self.NAND_ID,
+            self.NOR_ID,
+            self.XOR_ID,
+            self.NOT_ID,
+            self.SWITCH_ID,
+            self.CLOCK_ID,
+            self.DTYPE_ID,
+        ]
         if self.symbol.id in valid_device_ids:
             device_id = self.symbol.id
             self.get_next_symbol()
             return device_id
         else:
-            self.error(False, "Invalid device name. Expected gate (NOT/AND/NAND/OR/NOR/XOR), switch, bistable or clock.",False)
+            self.error(
+                False,
+                "Invalid device name. "
+                "Expected gate (NOT/AND/NAND/OR/NOR/XOR),"
+                " switch, bistable or clock.",
+                False,
+            )
             raise ParseSyntaxError()
 
     def assignment(self):
-        #syntax
+        # syntax
         name_id = self.name()
         self.assignment_dict["identifier"] = self.previous_column
 
         if self.symbol.type != self.scanner.EQUAL:
-            self.error(False, "Invalid assignment. Expected '=' sign.",False)
+            self.error(False, "Invalid assignment. Expected '=' sign.", False)
             raise ParseSyntaxError()
         self.get_next_symbol()
 
@@ -186,48 +231,85 @@ class Parser:
             self.get_next_symbol()
 
             if self.symbol.type != self.scanner.NUMBER:
-                
-                self.error(False, "Invalid parameter. Expected a number.",False)
+
+                self.error(
+                    False, "Invalid parameter. Expected a number.", False
+                )
                 raise ParseSyntaxError()
-            
+
             self.assignment_dict["parameter"] = self.current_column
             parameter = int(self.symbol.id)
             self.get_next_symbol()
 
             if self.symbol.type != self.scanner.CLOSE_PAREN:
-                self.error(False, "Missing ')' in the assignment.",False)
+                self.error(False, "Missing ')' in the assignment.", False)
                 raise ParseSyntaxError()
             self.get_next_symbol()
 
         if self.symbol.type != self.scanner.SEMICOLON:
-            self.error(False, "Expected ';' at the end of line.",True)
+            self.error(False, "Expected ';' at the end of line.", True)
             raise ParseSyntaxError()
 
-        #semantic
+        # semantic
         if device_id in [self.AND_ID, self.OR_ID, self.NAND_ID, self.NOR_ID]:
             if parameter is None:
-                self.error(True, "Number of Input is required",False,self.assignment_dict["parameter"])
+                self.error(
+                    True,
+                    "Number of Input is required",
+                    False,
+                    self.assignment_dict["parameter"],
+                )
                 raise ParseSemanticError()
             if not (2 <= parameter <= 16):
-                self.error(True, "Number of Input is not valid",False,self.assignment_dict["parameter"])
+                self.error(
+                    True,
+                    "Number of Input is not valid",
+                    False,
+                    self.assignment_dict["parameter"],
+                )
                 raise ParseSemanticError()
         elif device_id == self.SWITCH_ID:
             if parameter is None:
-                self.error(True, "Initial setting for SWITCH is required",False,self.assignment_dict["parameter"])
+                self.error(
+                    True,
+                    "Initial setting for SWITCH is required",
+                    False,
+                    self.assignment_dict["parameter"],
+                )
                 raise ParseSemanticError()
-            if parameter not in [0,1]:
-                self.error(True, "Initial setting for SWITCH is not valid",False,self.assignment_dict["parameter"])
+            if parameter not in [0, 1]:
+                self.error(
+                    True,
+                    "Initial setting for SWITCH is not valid",
+                    False,
+                    self.assignment_dict["parameter"],
+                )
                 raise ParseSemanticError()
         elif device_id == self.CLOCK_ID:
             if parameter is None:
-                self.error(True, "Initial setting for CLOCK is required",False,self.assignment_dict["parameter"])
+                self.error(
+                    True,
+                    "Initial setting for CLOCK is required",
+                    False,
+                    self.assignment_dict["parameter"],
+                )
                 raise ParseSemanticError()
-            if parameter <= 0 :
-                self.error(True, "Initial setting for CLOCK is not valid",False,self.assignment_dict["parameter"])
+            if parameter <= 0:
+                self.error(
+                    True,
+                    "Initial setting for CLOCK is not valid",
+                    False,
+                    self.assignment_dict["parameter"],
+                )
                 raise ParseSemanticError()
         elif device_id in [self.NOT_ID, self.XOR_ID, self.DTYPE_ID]:
             if parameter is not None:
-                self.error(True, "Number of Input is not allowed to change for this device",False,self.assignment_dict["parameter"])
+                self.error(
+                    True,
+                    "Number of Input is not allowed to change for this device",
+                    False,
+                    self.assignment_dict["parameter"],
+                )
                 raise ParseSemanticError()
             if device_id == self.XOR_ID:
                 parameter = None
@@ -235,16 +317,41 @@ class Parser:
                 parameter = None
         error_code = self.devices.make_device(name_id, device_id, parameter)
         if error_code != self.devices.NO_ERROR:
-            if error_code == self.devices.DEVICE_PRESENT: 
-                self.error(True,"Change name. This name is already in use.",False,self.assignment_dict["identifier"])
+            if error_code == self.devices.DEVICE_PRESENT:
+                self.error(
+                    True,
+                    "Change name. This name is already in use.",
+                    False,
+                    self.assignment_dict["identifier"],
+                )
             elif error_code == self.devices.BAD_DEVICE:
-                self.error(True, "The backend does not support this device type definition.",False,self.assignment_dict["device"])
-            elif error_code == self.devices.INVALID_QUALIFIER:                    
-                self.error(True, "The specified initialization parameter is invalid.",False,self.assignment_dict["parameter"])
+                self.error(
+                    True,
+                    "The backend does not support this"
+                    " device type definition.",
+                    False,
+                    self.assignment_dict["device"],
+                )
+            elif error_code == self.devices.INVALID_QUALIFIER:
+                self.error(
+                    True,
+                    "The specified initialization parameter is invalid.",
+                    False,
+                    self.assignment_dict["parameter"],
+                )
             elif error_code == self.devices.QUALIFIER_PRESENT:
-                self.error(True, "No qualifier expected for this device.",False,self.assignment_dict["parameter"])
+                self.error(
+                    True,
+                    "No qualifier expected for this device.",
+                    False,
+                    self.assignment_dict["parameter"],
+                )
             else:
-                self.error(True, f"Unhandled device creation error code: {error_code}",False)
+                self.error(
+                    True,
+                    f"Unhandled device creation error code: {error_code}",
+                    False,
+                )
             raise ParseSemanticError()
         self.get_next_symbol()
 
@@ -261,18 +368,27 @@ class Parser:
                 ident_col = self.current_column
                 self.get_next_symbol()
             else:
-                self.error(False, "Invalid terminal. Expected a input/output name after the '.'.",False)
+                self.error(
+                    False,
+                    "Invalid terminal."
+                    " Expected a input/output name after the '.'.",
+                    False,
+                )
                 raise ParseSyntaxError()
-            
+
         return name_id, identifier_id, name_col, ident_col
-        
+
     def connection(self):
-        #syntax
+        # syntax
         name_id_1, identifier_id_1, name_col1, ident_col1 = self.terminal()
         self.connection_dict["LHS_identifier"] = name_col1
         self.connection_dict["LHS_output"] = ident_col1
         if self.symbol.type != self.scanner.ARROW:
-            self.error(False, "Invalid connection. Expected '->' after the terminal.",False)
+            self.error(
+                False,
+                "Invalid connection. Expected '->' after the terminal.",
+                False,
+            )
             raise ParseSyntaxError()
         self.get_next_symbol()
         name_id_2, identifier_id_2, name_col2, ident_col2 = self.terminal()
@@ -280,52 +396,108 @@ class Parser:
         self.connection_dict["RHS_input"] = ident_col2
 
         if self.symbol.type != self.scanner.SEMICOLON:
-            self.error(False, "Expected ';' at the end of line.",True)
+            self.error(False, "Expected ';' at the end of line.", True)
             raise ParseSyntaxError()
-        
-        #semantic
+
+        # semantic
         if name_id_1 == name_id_2 and identifier_id_1 == identifier_id_2:
-            self.error(True,"A terminal must not be connected to itself.",False,self.connection_dict["RHS_identifier"])
+            self.error(
+                True,
+                "A terminal must not be connected to itself.",
+                False,
+                self.connection_dict["RHS_identifier"],
+            )
             raise ParseSemanticError()
-        error_code,error_device = self.network.make_connection(name_id_1, identifier_id_1, name_id_2, identifier_id_2)
+        error_code, error_device = self.network.make_connection(
+            name_id_1, identifier_id_1, name_id_2, identifier_id_2
+        )
         if error_code != self.network.NO_ERROR:
-            error_col = self.connection_dict[list(self.connection_dict.keys())[error_device]]
+            error_col = self.connection_dict[
+                list(self.connection_dict.keys())[error_device]
+            ]
             if error_code == self.network.DEVICE_ABSENT:
-                self.error(True, "Terminal names must already be specified in the DEVICES block.",False,error_col)
+                self.error(
+                    True,
+                    "Terminal names must already be "
+                    "specified in the DEVICES block.",
+                    False,
+                    error_col,
+                )
             elif error_code == self.network.PORT_ABSENT:
-                self.error(True, "The specified identifier is invalid for this device configuration.",False,error_col)
+                self.error(
+                    True,
+                    "The specified identifier is "
+                    "invalid for this device configuration.",
+                    False,
+                    error_col,
+                )
             elif error_code == self.network.INPUT_CONNECTED:
-                self.error(True, "Multi-driven input error. This input pin is already connected to an output.",False,error_col)
+                self.error(
+                    True,
+                    "Multi-driven input error. "
+                    "This input pin is already connected to an output.",
+                    False,
+                    error_col,
+                )
             elif error_code == self.network.INPUT_TO_INPUT:
-                self.error(True, "Invalid connection direction. You cannot source a wire from an input pin.",False,error_col)
+                self.error(
+                    True,
+                    "Invalid connection direction. "
+                    "You cannot source a wire from an input pin.",
+                    False,
+                    error_col,
+                )
             elif error_code == self.network.OUTPUT_TO_OUTPUT:
-                self.error(True, "Invalid connection direction. You cannot route a wire into an output pin.",False,error_col)
+                self.error(
+                    True,
+                    "Invalid connection direction. "
+                    "You cannot route a wire into an output pin.",
+                    False,
+                    error_col,
+                )
             raise ParseSemanticError()
         self.get_next_symbol()
 
     def signals(self):
-        #syntax
+        # syntax
         signal_counter = 1
         while self.symbol.type != self.scanner.END:
             name_id, identifier_id, name_col, ident_col = self.terminal()
-            self.signals_dict["name"+str(signal_counter)] = name_col
-            self.signals_dict["identifier"+str(signal_counter)] = ident_col
+            self.signals_dict["name" + str(signal_counter)] = name_col
+            self.signals_dict["identifier" + str(signal_counter)] = ident_col
             signal_counter += 1
             if self.symbol.type != self.scanner.SEMICOLON:
-                self.error(False, "Expected ';' at the end of line.",True)
+                self.error(False, "Expected ';' at the end of line.", True)
                 raise ParseSyntaxError()
-        #semantic
+            # semantic
             error_code = self.monitors.make_monitor(name_id, identifier_id)
             if error_code != self.monitors.NO_ERROR:
                 if error_code == self.monitors.network.DEVICE_ABSENT:
-                    self.error(True, "Cannot monitor a device that has not been defined.",False,name_col)
+                    self.error(
+                        True,
+                        "Cannot monitor a device that has not been defined.",
+                        False,
+                        name_col,
+                    )
                 if error_code == self.monitors.NOT_OUTPUT:
-                    self.error(True, "Only explicit device output pins (e.g., Q, QBAR) or simple gates can be monitored.",False,ident_col)
+                    self.error(
+                        True,
+                        "Only explicit device output pins (e.g., Q, QBAR)"
+                        " or simple gates can be monitored.",
+                        False,
+                        ident_col,
+                    )
                 elif error_code == self.monitors.MONITOR_PRESENT:
-                    self.error(True, "This exact device signal target is already tracked under active monitors.",False,ident_col)
+                    self.error(
+                        True,
+                        "This exact device signal target is already"
+                        " tracked under active monitors.",
+                        False,
+                        ident_col,
+                    )
                 continue
             self.get_next_symbol()
-        
+
     def get_next_symbol(self):
         old_symbol = self.symbol
         self.symbol = self.scanner.get_symbol()
@@ -336,22 +508,27 @@ class Parser:
         if self.symbol is not None:
             self.current_line = self.symbol.line
             self.current_column = self.symbol.column
-            
-    def error(self, error_type, message, end, semantic_column = None):
-        #error type will be a boolean (False if syntax error and True if semantic error)
-        #message will represent the error message
+
+    def error(self, error_type, message, end, semantic_column=None):
+        """error type will be a boolean (False if syntax error and
+        True if semantic error) message will represent the error message"""
         self.error_count += 1
-        if semantic_column != None:
+        if semantic_column is not None:
             error_line = self.current_line
             error_column = semantic_column
         else:
             if end:
                 error_line = self.previous_line
-                error_column = self.previous_column + self.previous_symbol_length
+                error_column = (
+                    self.previous_column + self.previous_symbol_length
+                )
             else:
                 error_line = self.current_line
                 error_column = self.current_column
-        error_message_list = ["Syntax error detected.","Semantic error detected."]
+        error_message_list = [
+            "Syntax error detected.",
+            "Semantic error detected.",
+        ]
         print(error_message_list[error_type])
         self.scanner.print_error_line(error_line, error_column)
         print(f"Details:{message}\n")
@@ -361,7 +538,11 @@ class Parser:
 
     def synchronise(self):
         while self.symbol.type != self.scanner.EOF:
-            if self.symbol.id in [self.DEVICES_ID, self.CONNECTIONS_ID, self.SIGNALS_ID]:
+            if self.symbol.id in [
+                self.DEVICES_ID,
+                self.CONNECTIONS_ID,
+                self.SIGNALS_ID,
+            ]:
                 return
 
             if self.symbol.type == self.scanner.SEMICOLON:

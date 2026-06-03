@@ -71,7 +71,6 @@ def test_get_symbol_single_punctuation(scanner_instance, char, expected_type):
     scanner_instance.advance.assert_called_once()
 
 
-
 def test_get_symbol_arrow_success(scanner_instance):
     scanner_instance.skip_spaces_and_comments = MagicMock()
 
@@ -111,6 +110,7 @@ def test_get_symbol_eof(scanner_instance):
     symbol = scanner_instance.get_symbol()
 
     assert symbol.type == Scanner.EOF
+
 
 def test_get_symbol_invalid_character(scanner_instance):
     scanner_instance.skip_spaces_and_comments = MagicMock()

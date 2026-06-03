@@ -10,6 +10,7 @@ Symbol - encapsulates a symbol and stores its properties.
 """
 import sys
 
+
 class Symbol:
 
     """Encapsulate a symbol and store its properties.
@@ -25,11 +26,12 @@ class Symbol:
 
     def __init__(self):
         """Initialise symbol properties."""
-        self.type = None 
+        self.type = None
         self.id = None
-        self.line = None 
+        self.line = None
         self.column = None
         self.length = 0
+
 
 class Scanner:
 
@@ -52,61 +54,67 @@ class Scanner:
     """
 
     # type ID
-    #(HEADINGS, END, DEVICE, IDENTIFIER, NAME, COMMA, SEMICOLON, EQUAL, COLON, DOT, OPEN_PAREN, CLOSE_PAREN, ARROW, NUMBER,EOF ) = range(15)
     (HEADINGS, END, DEVICE, IDENTIFIER, NAME,
         COMMA, SEMICOLON, EQUAL, COLON, DOT,
         OPEN_PAREN, CLOSE_PAREN, ARROW, NUMBER, EOF) = (
-    "HEADINGS", "END", "DEVICE", "IDENTIFIER", "NAME",
-    "COMMA", "SEMICOLON", "EQUAL", "COLON", "DOT",
-    "OPEN_PAREN", "CLOSE_PAREN", "ARROW", "NUMBER", "EOF"
+        "HEADINGS", "END", "DEVICE", "IDENTIFIER", "NAME",
+        "COMMA", "SEMICOLON", "EQUAL", "COLON", "DOT",
+        "OPEN_PAREN", "CLOSE_PAREN", "ARROW", "NUMBER", "EOF"
     )
 
     def __init__(self, path, names):
         self.names = names
         with open(path, 'r') as f:
-            self.file_lines = [line.rstrip('\n') for line in f] # for error reporting
+            self.file_lines = [line.rstrip('\n')
+                               for line in f]  # for error reporting
             f.seek(0)
             self.source_string = f.read()
-        
-        #self.symbol = Symbol() #initialise the symbol object
-        
+
+        # self.symbol = Symbol() #initialise the symbol object
+
         self.char_index = 0
-        self.line_number = 0 #was 1 before?
+        self.line_number = 0  # was 1 before?
         self.column_number = 1
-        self.current_character = self.source_string[0] if self.source_string else ""
+        self.current_character = (self.source_string[0] if
+                                  self.source_string else "")
         # heading
         self.heading_list = ["DEVICES", "CONNECTIONS", "SIGNALS"]
-        self.names.lookup(self.heading_list) # pre-regist
-        #end
+        self.names.lookup(self.heading_list)  # pre-regist
+        # end
         self.end_list = ["END"]
         self.names.lookup(self.end_list)
-        #device
-        self.device_list_ni = ["DTYPE", "NOT"]#ni means no need to specify number of input
-        self.device_list_i = ["AND", "XOR","OR", "NAND", "NOR","CLOCK", "SWITCH"] # i means need to specify number of input
+        # device
+        # ni means no need to specify number of input
+        self.device_list_ni = ["DTYPE", "NOT"]
+        # i means need to specify number of input
+        self.device_list_i = ["AND", "XOR", "OR",
+                              "NAND", "NOR", "CLOCK", "SWITCH"]
         self.names.lookup(self.device_list_ni + self.device_list_i)
-        #identifier
-        self.identifier_list = [f'I{i}' for i in range(1, 17)] + ['DATA', 'CLK', 'SET','CLEAR', 'Q','QBAR'] 
-        self.names.lookup(self.identifier_list) # avoid user name the device as I1 or other confusing term
-        #punctuation
+        # identifier
+        self.identifier_list = [f'I{i}' for i in range(
+            1, 17)] + ['DATA', 'CLK', 'SET', 'CLEAR', 'Q', 'QBAR']
+        # avoid user name the device as I1 or other confusing term
+        self.names.lookup(self.identifier_list)
+        # punctuation
         self.comma = ','
-        self.semicolon =';'
-        self.equal ='='
+        self.semicolon = ';'
+        self.equal = '='
         self.colon = ':'
-        self.dot ='.'
-        self.open_paren ='('
+        self.dot = '.'
+        self.open_paren = '('
         self.close_paren = ')'
         self.minus = '-'
         self.greater = '>'
         self.newline = '\n'
 
-        #fast search
+        # fast search
         self.heading_set = set(self.heading_list)
         self.device_set = set(self.device_list_ni + self.device_list_i)
         self.identifier_set = set(self.identifier_list)
 
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
-        self.skip_spaces_and_comments() # current character now not whitespace
+        self.skip_spaces_and_comments()  # current character now not whitespace
 
         self.symbol = Symbol()
 
@@ -118,7 +126,7 @@ class Scanner:
             self.symbol.length = 0
             return self.symbol
 
-        if self.current_character.isalpha(): 
+        if self.current_character.isalpha():
             name_list = self.get_name()
             name_string = name_list
             self.symbol.id = self.names.lookup([name_string])[0]
@@ -130,20 +138,20 @@ class Scanner:
             elif name_string in self.end_list:
                 self.symbol.type = self.END
             elif name_string in self.device_set:
-                    self.symbol.type = self.DEVICE
+                self.symbol.type = self.DEVICE
             elif name_string in self.identifier_list:
-                    self.symbol.type = self.IDENTIFIER
+                self.symbol.type = self.IDENTIFIER
             else:
                 self.symbol.type = self.NAME
             return self.symbol
-                
-        if self.current_character.isdigit(): 
+
+        if self.current_character.isdigit():
             self.symbol.id = self.get_number()
             self.symbol.type = self.NUMBER
             self.symbol.length = len(self.symbol.id)
             return self.symbol
-        
-        #punctuation
+
+        # punctuation
         elif self.current_character == ";":
             self.symbol.type = self.SEMICOLON
             self.symbol.length = 1
@@ -179,13 +187,13 @@ class Scanner:
                 self.symbol.length = 2
                 self.advance()
             else:
-                self.symbol.type = self.EOF # Or handle as invalid character
+                self.symbol.type = self.EOF  # Or handle as invalid character
                 self.symbol.length = 0
-            
+
         else:
             self.advance()
             return None
-        
+
         return self.symbol
 
     def get_name(self):
@@ -206,14 +214,16 @@ class Scanner:
 
     def skip_spaces_and_comments(self):
         """Skip both space and comments, comments is anything within quotes"""
-        while self.current_character.isspace() or self.current_character =='"':
+        while (self.current_character.isspace() or
+               self.current_character == '"'):
             if self.current_character.isspace():
                 self.advance()
-            elif self.current_character =='"':
+            elif self.current_character == '"':
                 self.advance()
-                while self.current_character != '"' and self.current_character != "":
+                while (self.current_character != '"' and
+                       self.current_character != ""):
                     self.advance()
-                if self.current_character =='"':
+                if self.current_character == '"':
                     self.advance()
 
     def advance(self):
@@ -230,12 +240,14 @@ class Scanner:
         return self.current_character
 
     def print_error_line(self, error_line_number, error_column_number):
-        """Prints the line of code and a caret pointing to the error location."""
+        """Prints the line of code and
+        a caret pointing to the error location."""
         if error_line_number >= len(self.file_lines):
             print("Error occurred at the end of the file (unexpected EOF).")
             return
         code_line = self.file_lines[error_line_number]
-        pointer_string = (" " * ((error_column_number - 1)+len(str(error_line_number+1))+8)) + "^"
-        print("Line",error_line_number + 1, ":",code_line)
-        #print(code_line)
+        pointer_string = (" " * ((error_column_number - 1) +
+                          len(str(error_line_number+1))+8)) + "^"
+        print("Line", error_line_number + 1, ":", code_line)
+        # print(code_line)
         print(pointer_string)

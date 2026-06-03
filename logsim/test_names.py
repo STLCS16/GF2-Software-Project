@@ -1,5 +1,5 @@
 import pytest
-from names import Names 
+from names import Names
 
 
 @pytest.fixture
@@ -11,7 +11,7 @@ def names_instance():
 def test_unique_error_codes_generation(names_instance):
     first_batch = names_instance.unique_error_codes(3)
     assert list(first_batch) == [0, 1, 2]
-    
+
     second_batch = names_instance.unique_error_codes(2)
     assert list(second_batch) == [3, 4]
 
@@ -19,6 +19,7 @@ def test_unique_error_codes_generation(names_instance):
 def test_unique_error_codes_invalid_type(names_instance):
     with pytest.raises(TypeError):
         names_instance.unique_error_codes("three")
+
 
 def test_lookup_adds_new_names(names_instance):
     ids = names_instance.lookup(["gate", "switch", "clock"])
@@ -33,6 +34,7 @@ def test_lookup_handles_existing_names(names_instance):
 
 def test_lookup_empty_list(names_instance):
     assert names_instance.lookup([]) == []
+
 
 def test_query_existing_name(names_instance):
     names_instance.lookup(["gate", "switch"])
@@ -58,6 +60,6 @@ def test_get_name_string_out_of_bounds(names_instance):
 def test_get_name_string_invalid_types(names_instance):
     with pytest.raises(TypeError):
         names_instance.get_name_string("zero")
-        
+
     with pytest.raises(ValueError):
         names_instance.get_name_string(-1)

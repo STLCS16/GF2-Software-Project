@@ -166,7 +166,7 @@ class Network:
             error_type = self.PORT_ABSENT
             error_device = 1
 
-        return error_type,error_device
+        return error_type, error_device
 
     def check_network(self):
         """Return True if all inputs in the network are connected."""
@@ -255,7 +255,7 @@ class Network:
 
         if device.device_kind == self.devices.XOR:
             # Output is high only if both inputs are different
-            if input_signal_list[0] == input_signal_list[1]:  # assume two inputs
+            if input_signal_list[0] == input_signal_list[1]:
                 output_signal = self.devices.LOW
             else:
                 output_signal = self.devices.HIGH
@@ -417,8 +417,9 @@ class Network:
             for device_id in xor_devices:  # execute XOR devices
                 if not self.execute_gate(device_id, None, None):
                     return False
-            for device_id in not_devices: # execute NOT devices
-                if not self.execute_gate(device_id, self.devices.HIGH, self.devices.LOW):
+            for device_id in not_devices:  # execute NOT devices
+                if not self.execute_gate(device_id, self.devices.HIGH,
+                                         self.devices.LOW):
                     return False
             if self.steady_state:
                 break

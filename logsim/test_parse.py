@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import MagicMock
 from parse import Parser, ParseSyntaxError, ParseSemanticError
 
+
 class MockSymbol:
     def __init__(self, type_=None, id_=None, line=1, column=1, length=1):
         self.type = type_
@@ -9,6 +10,7 @@ class MockSymbol:
         self.line = line
         self.column = column
         self.length = length
+
 
 @pytest.fixture
 def mock_dependencies():
@@ -43,6 +45,7 @@ def mock_dependencies():
 
     return names, devices, network, monitors, scanner
 
+
 @pytest.fixture
 def parser(mock_dependencies):
     names, devices, network, monitors, scanner = mock_dependencies
@@ -54,26 +57,28 @@ def parser(mock_dependencies):
 def test_name_invalid_raises_syntax_error(parser, mock_dependencies):
     _, _, _, _, scanner = mock_dependencies
     parser.symbol = MockSymbol(type_=scanner.NUMBER)
-    
+
     # FIX: Provide an EOF symbol so synchronise() can break out of its loop
     scanner.get_symbol.return_value = MockSymbol(type_=scanner.EOF)
-    
+
     with pytest.raises(ParseSyntaxError):
         parser.name()
 
+
 def test_device_invalid_raises_syntax_error(parser, mock_dependencies):
     _, _, _, _, scanner = mock_dependencies
-    parser.symbol = MockSymbol(id_=-999) 
-    
+    parser.symbol = MockSymbol(id_=-999)
+
     # FIX: Provide an EOF symbol so synchronise() can break out of its loop
     scanner.get_symbol.return_value = MockSymbol(type_=scanner.EOF)
-    
+
     with pytest.raises(ParseSyntaxError):
         parser.device()
 
+
 def test_assignment_valid(parser, mock_dependencies):
     _, devices, _, _, scanner = mock_dependencies
-    
+
     name_id = 100
     symbols = [
         MockSymbol(type_=scanner.NAME, id_=name_id),
@@ -85,16 +90,17 @@ def test_assignment_valid(parser, mock_dependencies):
         MockSymbol(type_=scanner.SEMICOLON),
         MockSymbol(type_=scanner.EOF)
     ]
-    
+
     parser.symbol = symbols[0]
     scanner.get_symbol.side_effect = symbols[1:]
-    
+
     parser.assignment()
     devices.make_device.assert_called_once_with(name_id, parser.SWITCH_ID, 1)
 
-def test_assignment_semantic_error_invalid_gate_inputs(parser, mock_dependencies):
+
+def test_assignment_semantic_error_invalid_gate(parser, mock_dependencies):
     _, _, _, _, scanner = mock_dependencies
-    
+
     symbols = [
         MockSymbol(type_=scanner.NAME, id_=100),
         MockSymbol(type_=scanner.EQUAL),
@@ -105,9 +111,9 @@ def test_assignment_semantic_error_invalid_gate_inputs(parser, mock_dependencies
         MockSymbol(type_=scanner.SEMICOLON),
         MockSymbol(type_=scanner.EOF)
     ]
-    
+
     parser.symbol = symbols[0]
     scanner.get_symbol.side_effect = symbols[1:]
-    
+
     with pytest.raises(ParseSemanticError):
         parser.assignment()
