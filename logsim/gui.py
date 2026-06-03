@@ -440,13 +440,16 @@ class Gui(wx.Frame):
         
         self.h_scroll.Bind(wx.EVT_SLIDER, self.on_horizontal_scroll)
         self.v_scroll.Bind(wx.EVT_SLIDER, self.on_vertical_scroll)
+        
     def on_menu(self, event):
         """Handle the event when the user selects a menu item."""
         Id = event.GetId()
         if Id == wx.ID_EXIT:
             self.Close(True)
         if Id == wx.ID_ABOUT:
-            wx.MessageBox("Logic Simulator\nGUI terminal prototype",
+            message = "Logic Simulator designed by group 14\n"
+            message += "Input file: " + str(self.path)
+            wx.MessageBox(message,
                           "About Logsim", wx.ICON_INFORMATION | wx.OK)
 
     def on_run_button(self, event):
