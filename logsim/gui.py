@@ -592,14 +592,13 @@ class Gui(wx.Frame):
         signal_name = parts[1]
         self.do_remove_monitor(signal_name)
         self.canvas.render("Monitor removed from " + signal_name + ".")
-    
+
     def handle_help_command(self, parts):
         """Process r N: run the simulation from a fresh start."""
         cycles = self.get_cycle_argument(parts, "h")
         if cycles is None:
             return
-        
-    
+
     def get_cycle_argument(self, parts, usage):
         """Return the number of cycles from a run or continue command."""
         if len(parts) != 2:
@@ -652,7 +651,8 @@ class Gui(wx.Frame):
         success = self.do_one_simulation_cycle()
         if not success:
             self.is_running = False
-            self.write_output("Error: simulation failed to reach steady state.")
+            self.write_output("Error: simulation failed "
+                              "to reach steady state.")
             self.canvas.render("Simulation error.")
             return
 
@@ -701,8 +701,6 @@ class Gui(wx.Frame):
         # convert a signal such as
         # G1 or D1.Q into internal device_id and output_id values.
         device_id, output_id = self.devices.get_signal_ids(signal_name)
-
-
         self.monitors.make_monitor(device_id, output_id)
         self.write_output("Added monitor on " + signal_name + ".")
 
@@ -716,12 +714,11 @@ class Gui(wx.Frame):
 
         self.monitors.remove_monitor(device_id, output_id)
         self.write_output("Removed monitor from " + signal_name + ".")
-    
+
     def on_horizontal_scroll(self, event):
         """Move the canvas view horizontally."""
         value = self.h_scroll.GetValue()
         self.canvas.set_horizontal_scroll(value)
-
 
     def on_vertical_scroll(self, event):
         """Move the canvas view vertically."""
@@ -731,6 +728,7 @@ class Gui(wx.Frame):
     def write_output(self, message):
         """Write a message into the terminal output box."""
         self.output_box.AppendText(message + "\n")
+
 
 if __name__ == "__main__":
     app = wx.App()

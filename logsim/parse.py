@@ -180,7 +180,8 @@ class Parser:
             self.get_next_symbol()
             return name_id
         else:
-            self.error(False, "Invalid assignment. Expected a component name.",False)
+            self.error(False, "Invalid assignment."
+                       "Expected a component name.", False)
             raise ParseSyntaxError()
 
     def device(self):

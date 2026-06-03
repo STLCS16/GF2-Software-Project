@@ -57,10 +57,10 @@ class Scanner:
     (HEADINGS, END, DEVICE, IDENTIFIER, NAME,
         COMMA, SEMICOLON, EQUAL, COLON, DOT,
         OPEN_PAREN, CLOSE_PAREN, ARROW, NUMBER, EOF, INVALID) = (
-    "HEADINGS", "END", "DEVICE", "IDENTIFIER", "NAME",
-    "COMMA", "SEMICOLON", "EQUAL", "COLON", "DOT",
-    "OPEN_PAREN", "CLOSE_PAREN", "ARROW", "NUMBER", "EOF", "INVALID"
-    )
+        "HEADINGS", "END", "DEVICE", "IDENTIFIER", "NAME",
+        "COMMA", "SEMICOLON", "EQUAL", "COLON", "DOT",
+        "OPEN_PAREN", "CLOSE_PAREN", "ARROW", "NUMBER", "EOF", "INVALID"
+        )
 
     def __init__(self, path, names):
         self.names = names
@@ -187,13 +187,12 @@ class Scanner:
                 self.symbol.length = 2
                 self.advance()
             else:
-                self.symbol.type = self.INVALID # Or handle as invalid character
+                self.symbol.type = self.INVALID
                 self.symbol.length = 0
 
         else:
             self.advance()
             self.symbol.type = self.INVALID
-        
         return self.symbol
 
     def get_name(self):
