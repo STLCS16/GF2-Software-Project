@@ -40,8 +40,8 @@ class Names:
 
     def __init__(self):
         """Initialise names list."""
-        self.error_code_count = 0 # how many error codes have been declared
-        self.names =[] 
+        self.error_code_count = 0
+        self.names = []
 
     def unique_error_codes(self, num_error_codes):
         """Return a list of unique integer error codes."""
@@ -65,14 +65,13 @@ class Names:
         If the name string is not present in the names list, add it.
         """
         index_list = []
-        for i in range (len(name_string_list)):
+        for i in range(len(name_string_list)):
             if name_string_list[i] in self.names:
                 index_list.append(self.names.index(name_string_list[i]))
             else:
                 self.names.append(name_string_list[i])
                 index_list.append(len(self.names) - 1)
         return index_list
-        
 
     def get_name_string(self, name_id):
         """Return the corresponding name string for name_id.
@@ -87,6 +86,3 @@ class Names:
             return self.names[name_id]
         else:
             return None
-    
-        
-

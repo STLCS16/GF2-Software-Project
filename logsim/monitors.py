@@ -53,8 +53,7 @@ class Monitors:
         self.network = network
         self.devices = devices
 
-        # monitors_dictionary stores
-        #{(device_id, output_id): [signal_list]}
+        # monitors_dictionary stores {(device_id, output_id): [signal_list]}
         self.monitors_dictionary = collections.OrderedDict()
 
         [self.NO_ERROR, self.NOT_OUTPUT,
