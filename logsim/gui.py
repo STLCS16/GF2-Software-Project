@@ -525,14 +525,6 @@ class Gui(wx.Frame):
         max_horizontal_scroll = max(0, total_width - canvas_width)
         max_vertical_scroll = max(0, total_height - canvas_height)
 
-        print("canvas width:", canvas_width)
-        print("canvas height:", canvas_height)
-        print("max cycles:", max_cycles)
-        print("number of monitors:", number_of_monitors)
-        print("total width:", total_width)
-        print("total height:", total_height)
-        print("max h scroll:", max_horizontal_scroll)
-        print("max v scroll:", max_vertical_scroll)
         self.h_scroll.SetRange(0, max_horizontal_scroll)
         self.v_scroll.SetRange(0, max_vertical_scroll)
 
