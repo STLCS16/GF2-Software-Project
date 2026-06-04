@@ -560,14 +560,15 @@ class Gui(wx.Frame):
             self.Close(True)
         elif command_type == "h":
             self.write_output(
-                "The run button run simulation for 20 cycles\n"
+                "The run button run simulation for 20 cycles.\n"
+                "The continue button runs a further 10 cycles.\n"
                 "Command list:\n"
                 "Run for N cycles: r N\n"
+                "Continue for N cycles: c N\n"
                 "Set the value of switch N: s SWN 1 or s SWN 0\n"
                 "Add a monitor on Gate N: m GN\n"
                 "Remove a monitor on Gate N: z GN\n"
-                "Press the stop button to pause the simulation\n"
-                "Press the continue button to resume the simulation"
+                "Press the stop button to quit the simulation\n"
             )
         else:
             self.write_output("Error: unknown command '" + command_type + "'.")
