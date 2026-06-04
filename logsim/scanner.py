@@ -8,11 +8,9 @@ Classes
 Scanner - reads definition file and translates characters into symbols.
 Symbol - encapsulates a symbol and stores its properties.
 """
-import sys
 
 
 class Symbol:
-
     """Encapsulate a symbol and store its properties.
 
     Parameters
@@ -34,7 +32,6 @@ class Symbol:
 
 
 class Scanner:
-
     """Read circuit definition file and translate the characters into symbols.
 
     Once supplied with the path to a valid definition file, the scanner
@@ -63,6 +60,7 @@ class Scanner:
         )
 
     def __init__(self, path, names):
+        """Scan the definition file and return tokens for the parser."""
         self.names = names
         with open(path, 'r') as f:
             self.file_lines = [line.rstrip('\n')
@@ -196,7 +194,7 @@ class Scanner:
         return self.symbol
 
     def get_name(self):
-        """Builds a string of alphanumeric characters."""
+        """Build a string of alphanumeric characters."""
         name_chars = []
         while self.current_character.isalnum():
             name_chars.append(self.current_character)
@@ -204,7 +202,7 @@ class Scanner:
         return "".join(name_chars)
 
     def get_number(self):
-        """Builds a string of continuous digits."""
+        """Build a string of continuous digits."""
         num_chars = []
         while self.current_character.isdigit():
             num_chars.append(self.current_character)
@@ -212,7 +210,7 @@ class Scanner:
         return "".join(num_chars)
 
     def skip_spaces_and_comments(self):
-        """Skip both space and comments, comments is anything within quotes"""
+        """Skip both space and comments, comments is anything within quotes."""
         while (self.current_character.isspace() or
                self.current_character == '"'):
             if self.current_character.isspace():
@@ -226,6 +224,7 @@ class Scanner:
                     self.advance()
 
     def advance(self):
+        """Return the next character in the text file."""
         self.char_index += 1
         if self.char_index < len(self.source_string):
             self.current_character = self.source_string[self.char_index]
@@ -239,8 +238,7 @@ class Scanner:
         return self.current_character
 
     def print_error_line(self, error_line_number, error_column_number):
-        """Prints the line of code and
-        a caret pointing to the error location."""
+        """Print the line of code and a caret pointing to the error location."""
         if error_line_number >= len(self.file_lines):
             print("Error occurred at the end of the file (unexpected EOF).")
             return
