@@ -58,7 +58,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.init = False
         self.context = wxcanvas.GLContext(self)
 
-        # Store references to simulator objects. 
+        # Store references to simulator objects.
 
         self.devices = devices
         self.monitors = monitors
@@ -96,6 +96,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glScaled(self.zoom, self.zoom, self.zoom)
         GL.glTranslated(self.pan_x, self.pan_y, 0.0)
         GL.glScaled(self.zoom, self.zoom, self.zoom)
+
     def render(self, text=None):
         """Handle all drawing operations."""
         self.SetCurrent(self.context)
@@ -114,9 +115,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Draw useful status text at the top-left of the canvas.
         self.render_text(self.display_text, 10, size.height - 20)
-
-        
-
         self.draw_monitor_traces()
 
         # We have been drawing to the back buffer, so flush the graphics
@@ -125,26 +123,27 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.SwapBuffers()
 
     def draw_monitor_traces(self):
+        """Draw the monitor trace from self.device."""
         start_x = 100
         start_y = 230
         step_x = 25
         trace_gap = 60
         trace_height = 25
 
-      # Draw each monitored signal on a separate horizontal line.
+        # Draw each monitored signal on a separate horizontal line.
         for trace_index, (device_id, output_id) in enumerate(
-            self.monitors.monitors_dictionary):
+                self.monitors.monitors_dictionary):
 
             signal_list = self.monitors.monitors_dictionary[
-            (device_id, output_id)]
+                (device_id, output_id)]
 
-        # Get a readable signal name
+            # Get a readable signal name
             signal_name = self.devices.get_signal_name(device_id, output_id)
 
             low_y = start_y - trace_index * trace_gap
             high_y = low_y + trace_height
 
-        # Draw the signal name on the left.
+            # Draw the signal name on the left.
             self.render_text(signal_name, 10, low_y)
             self.render_text("1", 50, high_y)
             self.render_text("0", 50, low_y)
@@ -163,7 +162,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 elif signal == self.devices.FALLING:
                     y = low_y
                 elif signal == self.devices.BLANK:
-                
                     y = low_y
                 else:
                     y = low_y
@@ -260,19 +258,19 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 GL.glRasterPos2f(x_pos, y_pos)
             else:
                 GLUT.glutBitmapCharacter(font, ord(character))
-    
+
     def set_horizontal_scroll(self, value):
         """Set horizontal pan from the scrollbar value."""
         self.pan_x = -value
         self.init = False
         self.Refresh()
 
-
     def set_vertical_scroll(self, value):
         """Set vertical pan from the scrollbar value."""
         self.pan_y = value
         self.init = False
         self.Refresh()
+
 
 class Gui(wx.Frame):
     """Configure the main window and all the widgets.
@@ -306,7 +304,7 @@ class Gui(wx.Frame):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(800, 600))
 
-        # Store references to the simulator objects. 
+        # Store references to the simulator objects.
 
         self.path = path
         self.names = names
@@ -314,7 +312,6 @@ class Gui(wx.Frame):
         self.network = network
         self.monitors = monitors
 
-       
         self.is_running = False
         self.cycles_remaining = 0
         self.cycles_completed = 0
@@ -391,8 +388,8 @@ class Gui(wx.Frame):
             terminal_panel,
             wx.ID_ANY,
             "",
-            style=wx.TE_MULTILINE | wx.TE_READONLY
-)
+            style=wx.TE_MULTILINE | wx.TE_READONLY)
+
         # The terminal input. The user can type commands such as r 10, c 5,
         # s SW1 1, m G1, z G1 and q.
         self.text_box = wx.TextCtrl(terminal_panel, wx.ID_ANY, "",
@@ -401,12 +398,11 @@ class Gui(wx.Frame):
         # Add the toolbar row at the top of the terminal panel.
         terminal_sizer.Add(toolbar_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
-       # Put the info box and output box side by side.
+        # Put the info box and output box side by side.
         info_output_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         info_output_sizer.Add(self.output_box, 2, wx.EXPAND)
         info_output_sizer.Add(self.switch_box, 1, wx.EXPAND | wx.RIGHT, 5)
-        
 
         # Add the side-by-side boxes to the terminal panel.
         terminal_sizer.Add(info_output_sizer, 1, wx.EXPAND |
@@ -437,10 +433,10 @@ class Gui(wx.Frame):
         self.Layout()
         self.write_output("Ready. Type h for help")
         self.update_switch_box()
-        
+
         self.h_scroll.Bind(wx.EVT_SLIDER, self.on_horizontal_scroll)
         self.v_scroll.Bind(wx.EVT_SLIDER, self.on_vertical_scroll)
-        
+
     def on_menu(self, event):
         """Handle the event when the user selects a menu item."""
         Id = event.GetId()
@@ -448,7 +444,7 @@ class Gui(wx.Frame):
             self.Close(True)
         if Id == wx.ID_ABOUT:
             message = "Logic Simulator designed by group 14\n"
-            message += "Input file: " + str(self.path)
+            message += "Definition file used: " + str(self.path)
             wx.MessageBox(message,
                           "About Logsim", wx.ICON_INFORMATION | wx.OK)
 
@@ -494,7 +490,7 @@ class Gui(wx.Frame):
         self.text_box.Clear()
 
     def update_switch_box(self):
-
+        """Refresh value in the switch box."""
         switch_text = "Switch values:\n"
 
         for device_id in self.devices.find_devices():
@@ -508,7 +504,6 @@ class Gui(wx.Frame):
 
                 switch_text += switch_name + " = " + str(switch_value) + "\n"
                 self.switch_box.SetValue(switch_text)
-
 
     def process_command(self, command):
         """Interpret a terminal command and call the appropriate method."""
@@ -533,7 +528,15 @@ class Gui(wx.Frame):
         elif command_type == "q":
             self.Close(True)
         elif command_type == "h":
-            self.write_output("The run button run simulation for 20 cycles\nRun for N cycles: r N\nSet the value of switch N: s SWN 1 or s SWN 0\nAdd a monitor on Gate N: m GN\nRemove a monitor on Gate N: z GN\nPress the stop button to pause the simulation\nPress the continue button to resume the simulation")
+            self.write_output(
+                "The run button run simulation for 20 cycles\n"
+                "Run for N cycles: r N\n"
+                "Set the value of switch N: s SWN 1 or s SWN 0\n"
+                "Add a monitor on Gate N: m GN\n"
+                "Remove a monitor on Gate N: z GN\n"
+                "Press the stop button to pause the simulation\n"
+                "Press the continue button to resume the simulation"
+            )
         else:
             self.write_output("Error: unknown command '" + command_type + "'.")
 
@@ -670,14 +673,12 @@ class Gui(wx.Frame):
 
     def do_prepare_fresh_run(self):
         """Prepare the simulator for a fresh run."""
-
         self.monitors.reset_monitors()
 
         self.devices.cold_startup()
 
     def do_one_simulation_cycle(self):
         """Run one network cycle and record monitor signals."""
-
         success = self.network.execute_network()
 
         if success:
@@ -688,7 +689,6 @@ class Gui(wx.Frame):
 
     def do_set_switch(self, switch_name, switch_value):
         """Set a switch value using the devices module."""
-
         switch_id = self.names.query(switch_name)
         if switch_id is None:
             self.write_output("Error: unknown switch " + switch_name + ".")
@@ -700,7 +700,6 @@ class Gui(wx.Frame):
 
     def do_add_monitor(self, signal_name):
         """Add a monitor on an output signal."""
-
         # convert a signal such as
         # G1 or D1.Q into internal device_id and output_id values.
         device_id, output_id = self.devices.get_signal_ids(signal_name)
@@ -709,11 +708,9 @@ class Gui(wx.Frame):
 
     def do_remove_monitor(self, signal_name):
         """Remove a monitor from an output signal."""
-
         # convert a signal such as
         # G1 or D1.Q into internal device_id and output_id values.
         device_id, output_id = self.devices.get_signal_ids(signal_name)
-
 
         self.monitors.remove_monitor(device_id, output_id)
         self.write_output("Removed monitor from " + signal_name + ".")
