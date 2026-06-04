@@ -123,7 +123,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.SwapBuffers()
 
     def draw_monitor_traces(self):
-        """Draw the monitor trace from self.device."""
+        """Draw the monitor trace from self.monitors."""
         start_x = 100
         start_y = 230
         step_x = 25
@@ -391,7 +391,7 @@ class Gui(wx.Frame):
             style=wx.TE_MULTILINE | wx.TE_READONLY)
 
         # The terminal input. The user can type commands such as r 10, c 5,
-        # s SW1 1, m G1, z G1 and q.
+        # s SW1 1, m G1 and z G1.
         self.text_box = wx.TextCtrl(terminal_panel, wx.ID_ANY, "",
                                     style=wx.TE_PROCESS_ENTER)
 
@@ -452,7 +452,7 @@ class Gui(wx.Frame):
         """Handle the event when the user clicks the run button.
 
         If the text box contains a command, this button processes it. If the
-        text box is empty, it performs a default fresh run for 10 cycles.
+        text box is empty, it performs a default fresh run for 20 cycles.
         """
         command = self.text_box.GetValue().strip()
         if not command:
