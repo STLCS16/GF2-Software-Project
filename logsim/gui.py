@@ -621,8 +621,30 @@ class Gui(wx.Frame):
             return
 
         signal_name = parts[1]
-        self.do_add_monitor(signal_name)
-        self.canvas.render("Monitor added on " + signal_name + ".")
+        device_id, output_id = self.devices.get_signal_ids(signal_name)
+        if device_id is None:
+            return
+
+        error_type = self.monitors.make_monitor(
+            device_id,
+            output_id,
+            self.cycles_completed
+        )
+        if error_type == self.monitors.NO_ERROR:
+            self.do_add_monitor(signal_name)
+
+        elif error_type == self.monitors.MONITOR_PRESENT:
+            self.write_output("Monitor on " + signal_name + " already exists.")
+
+        elif error_type == self.monitors.NOT_OUTPUT:
+            self.write_output(signal_name + " is not an output.")
+
+        elif error_type == self.network.DEVICE_ABSENT:
+            self.write_output(signal_name + " is not defined.")
+
+        else:
+            self.write_output("Could not add monitor on " + signal_name)
+
         self.update_scrollbars()
         self.canvas.Refresh()
 
@@ -633,8 +655,53 @@ class Gui(wx.Frame):
             return
 
         signal_name = parts[1]
-        self.do_remove_monitor(signal_name)
-        self.canvas.render("Monitor removed from " + signal_name + ".")
+
+        if "." in signal_name:
+            device_name, output_name = signal_name.split(".", 1)
+        else:
+            device_name = signal_name
+            output_name = None
+
+        device_id = self.names.query(device_name)
+
+        if device_name is None:
+            self.write_output(
+                "Error: device '" + device_name + "' is not defined.")
+            return
+
+        if output_name is not None:
+            output_id = self.names.query(output_name)
+
+            if output_id is None:
+                self.write_output(
+                    "Error: output '" + output_name + "' is not defined."
+                )
+                return
+        device_id, output_id = self.devices.get_signal_ids(signal_name)
+
+        device = self.devices.get_device(device_id)
+
+        if device is None:
+            self.write_output(
+                "Error: device '" + device_name + "' is not in the network."
+            )
+            return
+
+        if output_id not in device.outputs:
+            self.write_output(
+                "Error: signal '" + signal_name + "' is not an output."
+            )
+            return
+
+        if (device_id, output_id) not in self.monitors.monitors_dictionary:
+            self.write_output(
+                "Error: no monitor exists on signal '" + signal_name + "'."
+            )
+            return
+
+        self.monitors.remove_monitor(device_id, output_id)
+        self.write_output("Monitor removed: " + signal_name)
+
         self.update_scrollbars()
         self.canvas.Refresh()
 
