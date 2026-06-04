@@ -505,6 +505,37 @@ class Gui(wx.Frame):
                 switch_text += switch_name + " = " + str(switch_value) + "\n"
                 self.switch_box.SetValue(switch_text)
 
+    def update_scrollbars(self):
+        """Update scrollbar ranges from monitor count and trace length."""
+        step_x = 25
+        trace_gap = 60
+
+        canvas_size = self.canvas.GetClientSize()
+        canvas_width = canvas_size.width
+        canvas_height = canvas_size.height
+
+        number_of_monitors = len(self.monitors.monitors_dictionary)
+
+        max_cycles = 0
+        max_cycles = self.cycles_completed
+
+        total_width = max_cycles * step_x + 125
+        total_height = number_of_monitors * trace_gap + 100
+
+        max_horizontal_scroll = max(0, total_width - canvas_width)
+        max_vertical_scroll = max(0, total_height - canvas_height)
+
+        print("canvas width:", canvas_width)
+        print("canvas height:", canvas_height)
+        print("max cycles:", max_cycles)
+        print("number of monitors:", number_of_monitors)
+        print("total width:", total_width)
+        print("total height:", total_height)
+        print("max h scroll:", max_horizontal_scroll)
+        print("max v scroll:", max_vertical_scroll)
+        self.h_scroll.SetRange(0, max_horizontal_scroll)
+        self.v_scroll.SetRange(0, max_vertical_scroll)
+
     def process_command(self, command):
         """Interpret a terminal command and call the appropriate method."""
         if not command:
@@ -530,6 +561,7 @@ class Gui(wx.Frame):
         elif command_type == "h":
             self.write_output(
                 "The run button run simulation for 20 cycles\n"
+                "Command list:\n"
                 "Run for N cycles: r N\n"
                 "Set the value of switch N: s SWN 1 or s SWN 0\n"
                 "Add a monitor on Gate N: m GN\n"
@@ -547,6 +579,8 @@ class Gui(wx.Frame):
             return
 
         self.start_simulation(cycles, cold_start=True)
+        self.update_scrollbars()
+        self.canvas.Refresh()
 
     def handle_continue_command(self, parts):
         """Process c N: continue the simulation from the current state."""
@@ -588,6 +622,8 @@ class Gui(wx.Frame):
         signal_name = parts[1]
         self.do_add_monitor(signal_name)
         self.canvas.render("Monitor added on " + signal_name + ".")
+        self.update_scrollbars()
+        self.canvas.Refresh()
 
     def handle_zap_command(self, parts):
         """Process z X: remove the monitor on signal X."""
@@ -598,6 +634,8 @@ class Gui(wx.Frame):
         signal_name = parts[1]
         self.do_remove_monitor(signal_name)
         self.canvas.render("Monitor removed from " + signal_name + ".")
+        self.update_scrollbars()
+        self.canvas.Refresh()
 
     def handle_help_command(self, parts):
         """Process r N: run the simulation from a fresh start."""
@@ -640,6 +678,8 @@ class Gui(wx.Frame):
         self.cycles_remaining = cycles
         self.is_running = True
         self.write_output("Running for " + str(cycles) + " cycle(s).")
+        self.update_scrollbars()
+        self.canvas.Refresh()
         self.run_next_cycle()
 
     def run_next_cycle(self):
@@ -670,6 +710,8 @@ class Gui(wx.Frame):
 
         # Schedule the next cycle after a short delay.
         wx.CallLater(50, self.run_next_cycle)
+        self.update_scrollbars()
+        self.canvas.Refresh()
 
     def do_prepare_fresh_run(self):
         """Prepare the simulator for a fresh run."""
