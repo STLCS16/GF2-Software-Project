@@ -83,6 +83,7 @@ class Parser:
         self.CLOCK_ID = self.names.lookup(["CLOCK"])[0]
         self.DTYPE_ID = self.names.lookup(["DTYPE"])[0]
         self.RC_ID = self.names.lookup(["RC"])[0]
+        self.SIGGEN_ID = self.names.lookup(["SIGGEN"])[0]
 
     def parse_network(self):
         """Parse the circuit definition file."""
@@ -189,7 +190,8 @@ class Parser:
             self.SWITCH_ID,
             self.CLOCK_ID,
             self.DTYPE_ID,
-            self.RC_ID
+            self.RC_ID,
+            self.SIGGEN_ID
         ]
         if self.symbol.id in valid_device_ids:
             device_id = self.symbol.id
@@ -224,14 +226,18 @@ class Parser:
             self.get_next_symbol()
 
             if self.symbol.type != self.scanner.NUMBER:
-
                 self.error(
                     False, "Invalid parameter. Expected a number.", False
                 )
                 raise ParseSyntaxError()
 
             self.assignment_dict["parameter"] = self.current_column
-            parameter = int(self.symbol.id)
+            param1_str = str(self.symbol.id)
+
+            if device_id == self.SIGGEN_ID:
+                parameter = tuple(int(bit)for bit in param1_str)
+            else:
+                parameter = int(param1_str)
             self.get_next_symbol()
 
             if self.symbol.type != self.scanner.CLOSE_PAREN:
@@ -325,6 +331,13 @@ class Parser:
                 parameter = None
             if device_id == self.NOT_ID:
                 parameter = None
+        elif device_id == self.SIGGEN_ID:
+            if parameter is None:
+                self.error(True, "Parameters is required for signal generator", False, self.assignment_dict["parameter"])
+                raise ParseSemanticError()
+            if not isinstance(parameter, tuple):
+                self.error(True, "SIGGEN requires a valid waveform bit sequence", False, self.assignment_dict["parameter"])
+                raise ParseSemanticError()
         error_code = self.devices.make_device(name_id, device_id, parameter)
         if error_code != self.devices.NO_ERROR:
             if error_code == self.devices.DEVICE_PRESENT:

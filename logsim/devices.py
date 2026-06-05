@@ -43,7 +43,6 @@ class Device:
         self.rc_state = None
         self.siggen_waveform = None
         self.siggen_counter = None
-        self.siggen_half_period = None
 
 
 class Devices:
@@ -269,13 +268,13 @@ class Devices:
         device.rc_n = no_of_cycles
         self.cold_startup()
 
-    def make_siggen(self, device_id, waveform, siggen_half_period):
+    def make_siggen(self, device_id, waveform):
         self.add_device(device_id, self.SIGGEN)
         initial_signal = waveform[0] if waveform else self.LOW
         self.add_output(device_id, output_id = None, signal = initial_signal)
         device = self.get_device(device_id)
         device.siggen_waveform = waveform
-        device.siggen_half_period = siggen_half_period
+        device.siggen_half_period = 2
         device.siggen_counter = 0
 
     def cold_startup(self):
@@ -332,6 +331,8 @@ class Devices:
         elif device_kind == self.SIGGEN:
             if device_property is None:
                 error_type = self.NO_QUALIFIER
+            elif not isinstance(device_property, tuple):
+                error_type = self.INVALID_QUALIFIER
             elif not all(bit in [self.LOW, self.HIGH] for bit in device_property):
                 error_type = self.INVALID_QUALIFIER
             else:

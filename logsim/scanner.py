@@ -86,7 +86,7 @@ class Scanner:
         self.device_list_ni = ["DTYPE", "NOT"]
         # i means need to specify number of input
         self.device_list_i = ["AND", "XOR", "OR",
-                              "NAND", "NOR", "CLOCK", "SWITCH"]
+                              "NAND", "NOR", "CLOCK", "SWITCH","SIGGEN"]
         self.names.lookup(self.device_list_ni + self.device_list_i)
         # identifier
         self.identifier_list = [f'I{i}' for i in range(

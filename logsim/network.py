@@ -375,35 +375,20 @@ class Network:
         Return True if successful.
         """
         device = self.devices.get_device(device_id)
-        output_signal = device.outputs[None]  # output ID is None
-
-        if output_signal == self.devices.RISING:
-            new_signal = self.update_signal(output_signal, self.devices.HIGH)
-            if new_signal is None:  # update is unsuccessful
-                return False
-            device.outputs[None] = new_signal
+        if device is None or not device.siggen_waveform:
             return True
-
-        elif output_signal == self.devices.FALLING:
-            new_signal = self.update_signal(output_signal, self.devices.LOW)
-            if new_signal is None:  # update is unsuccessful
-                return False
-            device.outputs[None] = new_signal
-            return True
-
-        elif output_signal in [self.devices.HIGH, self.devices.LOW]:
-            return True
-
-        else:
-            return False
+        current_signal = device.siggen_wavefrm[device.siggen_counter]
+        device.outputs[None] = current_signal
+        device.siggen_counter = (device.siggen_counter +1)% len(device.siggen_waveform)
+        return True
 
     def update_siggens(self):
         siggen_devices = self.devices.find_devices(self.devices.SIGGEN)
         for device_id in siggen_devices:
             device = self.devices.get_device(device_id)
 
-            if device.siggen_cycle_counter == device.siggen_half_period:
-                device.siggen_cycle_counter = 0
+            if device.siggen_counter == device.siggen_half_period:
+                device.siggen_counter = 0
 
                 current_idx = device.siggen_index
                 next_idx = (current_idx +1)% len(device.siggen_waveform)
@@ -420,7 +405,7 @@ class Network:
                 
                 device.siggen_index = next_idx
 
-            device.siggen_cycle_counter += 1
+            device.siggen_counter += 1
 
 
     def execute_network(self, cycle_num):
