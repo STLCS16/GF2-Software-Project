@@ -82,6 +82,7 @@ class Parser:
         self.SWITCH_ID = self.names.lookup(["SWITCH"])[0]
         self.CLOCK_ID = self.names.lookup(["CLOCK"])[0]
         self.DTYPE_ID = self.names.lookup(["DTYPE"])[0]
+        self.RC_ID = self.names.lookup(["RC"])[0]
 
     def parse_network(self):
         """Parse the circuit definition file."""
@@ -188,6 +189,7 @@ class Parser:
             self.SWITCH_ID,
             self.CLOCK_ID,
             self.DTYPE_ID,
+            self.RC_ID
         ]
         if self.symbol.id in valid_device_ids:
             device_id = self.symbol.id
@@ -276,6 +278,23 @@ class Parser:
                     self.assignment_dict["parameter"],
                 )
                 raise ParseSemanticError()
+        elif device_id == self.RC_ID:
+            if parameter is None:
+                self.error(
+                    True,
+                    "Number of symulation cycles is required.",
+                    False,
+                    self.assignment_dict["parameter"]
+                )
+                raise ParseSemanticError
+            if parameter <= 0:
+                self.error(
+                    True,
+                    "Number of symulation cycles for RC is not valid",
+                    False,
+                    self.assignment_dict["parameter"],
+                )
+                raise ParseSemanticError
         elif device_id == self.CLOCK_ID:
             if parameter is None:
                 self.error(

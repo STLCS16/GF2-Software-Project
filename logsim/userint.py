@@ -249,7 +249,8 @@ class UserInterface:
         Return True if successful.
         """
         for _ in range(cycles):
-            if self.network.execute_network():
+            cycle_num = _ + 1
+            if self.network.execute_network(cycle_num): #added parameter cycles
                 self.monitors.record_signals()
             else:
                 print("Error! Network oscillating.")

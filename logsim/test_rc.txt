@@ -1,0 +1,13 @@
+DEVICES:
+RC1 = RC(3);
+G1 = NOT;
+G2 = NOT;
+
+CONNECTIONS:
+RC1 -> G1.I1;
+G1 -> G2.I1;
+
+SIGNALS:
+G2;
+
+END

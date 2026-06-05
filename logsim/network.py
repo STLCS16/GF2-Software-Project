@@ -343,6 +343,16 @@ class Network:
 
         else:
             return False
+    
+    def execute_rc(self, cycle_num):
+        """If it is time to do so, set the RC signal from HIGH to LOW."""
+        rc_devices = self.devices.find_devices(self.devices.RC)
+        for device_id in rc_devices:
+            device = self.devices.get_device(device_id)
+            N = device.rc_n
+            if cycle_num >= N:
+                device.outputs[None] = self.devices.FALLING
+        return True #this is probably wrong
 
     def update_clocks(self):
         """If it is time to do so, set clock signals to RISING or FALLING."""
@@ -359,7 +369,7 @@ class Network:
                     device.outputs[None] = self.devices.RISING
             device.clock_counter += 1
 
-    def execute_network(self):
+    def execute_network(self, cycle_num):
         """Execute all the devices in the network for one simulation cycle.
 
         Return True if successful and the network does not oscillate.
@@ -373,6 +383,7 @@ class Network:
         nor_devices = self.devices.find_devices(self.devices.NOR)
         xor_devices = self.devices.find_devices(self.devices.XOR)
         not_devices = self.devices.find_devices(self.devices.NOT)
+        rc_devices = self.devices.find_devices(self.devices.RC)
 
         # This sets clock signals to RISING or FALLING, where necessary
         self.update_clocks()
@@ -420,6 +431,10 @@ class Network:
                 if not self.execute_gate(device_id, self.devices.HIGH,
                                          self.devices.LOW):
                     return False
+            for device_id in rc_devices: # execute RC devices
+                if not self.execute_rc(cycle_num):
+                    return False
+                
             if self.steady_state:
                 break
         return self.steady_state
