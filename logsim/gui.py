@@ -150,8 +150,10 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             GL.glColor3f(0.0, 0.0, 1.0)
             GL.glBegin(GL.GL_LINE_STRIP)
 
+            previous_y = None
             for i, signal in enumerate(signal_list):
                 x = start_x + i * step_x
+                x_next = x + step_x
 
                 if signal == self.devices.HIGH:
                     y = high_y
@@ -166,7 +168,14 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 else:
                     y = low_y
 
+                if previous_y is not None and previous_y != y:
+                    GL.glVertex2f(x, previous_y)
+                    GL.glVertex2f(x, y)
+
                 GL.glVertex2f(x, y)
+                GL.glVertex2f(x_next, y)
+
+                previous_y = y
 
             GL.glEnd()
 
