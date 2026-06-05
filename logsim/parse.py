@@ -9,10 +9,7 @@ Classes
 Parser - parses the definition file and builds the logic network.
 """
 
-import scanner
 from scanner import Symbol
-import sys
-import wx
 
 
 class ParseSyntaxError(Exception):
@@ -22,10 +19,8 @@ class ParseSyntaxError(Exception):
 
 
 class ParseSemanticError(Exception):
-    pass
+    """Custom exception raised when a semantic rule is broken."""
 
-
-class DefFileError(Exception):
     pass
 
 
@@ -87,13 +82,10 @@ class Parser:
         self.SWITCH_ID = self.names.lookup(["SWITCH"])[0]
         self.CLOCK_ID = self.names.lookup(["CLOCK"])[0]
         self.DTYPE_ID = self.names.lookup(["DTYPE"])[0]
+        self.RC_ID = self.names.lookup(["RC"])[0]
 
     def parse_network(self):
         """Parse the circuit definition file."""
-        # For now just return True, so that userint and gui can run in the
-        # skeleton code. When complete, should return False when there are
-        # errors in the circuit definition file.
-        # return True
         try:
             self.get_next_symbol()
             # device
@@ -175,6 +167,7 @@ class Parser:
             return False
 
     def name(self):
+        """Check that a symbol is a name."""
         if self.symbol.type == self.scanner.NAME:
             name_id = self.symbol.id
             self.get_next_symbol()
@@ -185,6 +178,7 @@ class Parser:
             raise ParseSyntaxError()
 
     def device(self):
+        """Check that a symbol is a device."""
         valid_device_ids = [
             self.AND_ID,
             self.OR_ID,
@@ -195,6 +189,7 @@ class Parser:
             self.SWITCH_ID,
             self.CLOCK_ID,
             self.DTYPE_ID,
+            self.RC_ID
         ]
         if self.symbol.id in valid_device_ids:
             device_id = self.symbol.id
@@ -211,6 +206,7 @@ class Parser:
             raise ParseSyntaxError()
 
     def assignment(self):
+        """Check assignements definitions."""
         # syntax
         name_id = self.name()
         self.assignment_dict["identifier"] = self.previous_column
@@ -282,6 +278,23 @@ class Parser:
                     self.assignment_dict["parameter"],
                 )
                 raise ParseSemanticError()
+        elif device_id == self.RC_ID:
+            if parameter is None:
+                self.error(
+                    True,
+                    "Number of symulation cycles is required.",
+                    False,
+                    self.assignment_dict["parameter"]
+                )
+                raise ParseSemanticError
+            if parameter <= 0:
+                self.error(
+                    True,
+                    "Number of symulation cycles for RC is not valid",
+                    False,
+                    self.assignment_dict["parameter"],
+                )
+                raise ParseSemanticError
         elif device_id == self.CLOCK_ID:
             if parameter is None:
                 self.error(
@@ -353,6 +366,7 @@ class Parser:
         self.get_next_symbol()
 
     def terminal(self):
+        """Check that a terminal definition is valid."""
         name_id = self.name()
         name_col = self.previous_column
         ident_col = None
@@ -376,6 +390,7 @@ class Parser:
         return name_id, identifier_id, name_col, ident_col
 
     def connection(self):
+        """Check that a connection definition is valid."""
         # syntax
         name_id_1, identifier_id_1, name_col1, ident_col1 = self.terminal()
         self.connection_dict["LHS_identifier"] = name_col1
@@ -456,6 +471,7 @@ class Parser:
         self.get_next_symbol()
 
     def signals(self):
+        """Check that signals to be monitored are valid."""
         # syntax
         signal_counter = 1
         while self.symbol.type != self.scanner.END:
@@ -496,6 +512,7 @@ class Parser:
             self.get_next_symbol()
 
     def get_next_symbol(self):
+        """Return the next symbol in the definition file."""
         old_symbol = self.symbol
         self.symbol = self.scanner.get_symbol()
         if old_symbol is not None:
@@ -507,8 +524,7 @@ class Parser:
             self.current_column = self.symbol.column
 
     def error(self, error_type, message, end, semantic_column=None):
-        """error type will be a boolean (False if syntax error and
-        True if semantic error) message will represent the error message"""
+        """Report the error detected (syntax or semantic)."""
         self.error_count += 1
         if semantic_column is not None:
             error_line = self.current_line
@@ -534,6 +550,7 @@ class Parser:
         return False
 
     def synchronise(self):
+        """Resume parsing after an error has occured."""
         while self.symbol.type != self.scanner.EOF:
             if self.symbol.id in [
                 self.DEVICES_ID,
