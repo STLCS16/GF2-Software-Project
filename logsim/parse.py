@@ -23,6 +23,11 @@ class ParseSemanticError(Exception):
 
     pass
 
+class MissingConnectionsHeader(Exception):
+    """Custom exception raised when the program discovers that the CONNECTIONS header is missing."""
+
+    pass
+
 
 class Parser:
     """Parse the definition file and build the logic network.
@@ -70,6 +75,8 @@ class Parser:
         self.previous_line = 0
         self.previous_column = 0
         self.previous_symbol_length = 0
+        self.previous_symbol = None
+        
         self.DEVICES_ID = self.names.lookup(["DEVICES"])[0]
         self.CONNECTIONS_ID = self.names.lookup(["CONNECTIONS"])[0]
         self.SIGNALS_ID = self.names.lookup(["SIGNALS"])[0]
@@ -100,7 +107,12 @@ class Parser:
                 raise ParseSyntaxError()
             self.get_next_symbol()
 
+            found_connections_header = True
             while self.symbol.id != self.CONNECTIONS_ID:
+                if self.symbol.id == self.SIGNALS_ID:
+                    self.error(False, "Missing 'CONNECTIONS' header.", False)
+                    found_connections_header = False
+                    return False
                 if self.symbol.type == self.scanner.EOF:
                     self.error(
                         False,
@@ -111,15 +123,20 @@ class Parser:
                     return False
                 try:
                     self.assignment()
+                except MissingConnectionsHeader:
+                    self.error(False, "Expected assignment not connection. Missing 'CONNECTIONS' header.", True)
+                    found_connections_header = False
+                    return
                 except (ParseSyntaxError, ParseSemanticError):
                     pass
                     # self.synchronise()
-            self.get_next_symbol()
-            # connections
-            if self.symbol.type != self.scanner.COLON:
-                self.error(False, "Expected ':' at the end of line.", True)
-                raise ParseSyntaxError()
-            self.get_next_symbol()
+            if found_connections_header:
+                self.get_next_symbol()
+                # connections
+                if self.symbol.type != self.scanner.COLON:
+                    self.error(False, "Expected ':' at the end of line.", True)
+                    raise ParseSyntaxError()
+                self.get_next_symbol()
 
             while self.symbol.id != self.SIGNALS_ID:
                 if self.symbol.type == self.scanner.EOF:
@@ -136,7 +153,6 @@ class Parser:
                     # self.synchronise()
             # signals
             self.get_next_symbol()
-
             if self.symbol.type != self.scanner.COLON:
                 self.error(False, "Expected ':' at the end of line.", True)
                 raise ParseSyntaxError()
@@ -214,8 +230,11 @@ class Parser:
         self.assignment_dict["identifier"] = self.previous_column
 
         if self.symbol.type != self.scanner.EQUAL:
-            self.error(False, "Invalid assignment. Expected '=' sign.", False)
-            raise ParseSyntaxError()
+            if self.symbol.type == self.scanner.ARROW:
+                raise(MissingConnectionsHeader)
+            else:
+                self.error(False, "Invalid assignment. Expected '=' sign.", False)
+                raise ParseSyntaxError()
         self.get_next_symbol()
 
         device_id = self.device()
@@ -227,7 +246,7 @@ class Parser:
 
             if self.symbol.type != self.scanner.NUMBER:
                 self.error(
-                    False, "Invalid parameter. Expected a number.", False
+                    False, "Invalid parameter. Expected a positive number.", False
                 )
                 raise ParseSyntaxError()
 
@@ -526,12 +545,12 @@ class Parser:
 
     def get_next_symbol(self):
         """Return the next symbol in the definition file."""
-        old_symbol = self.symbol
+        self.previous_symbol = self.symbol
         self.symbol = self.scanner.get_symbol()
-        if old_symbol is not None:
-            self.previous_line = old_symbol.line
-            self.previous_column = old_symbol.column
-            self.previous_symbol_length = old_symbol.length
+        if self.previous_symbol is not None:
+            self.previous_line = self.previous_symbol.line
+            self.previous_column = self.previous_symbol.column
+            self.previous_symbol_length = self.previous_symbol.length
         if self.symbol is not None:
             self.current_line = self.symbol.line
             self.current_column = self.symbol.column
