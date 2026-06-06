@@ -407,14 +407,11 @@ class Network:
         for device_id in siggen_devices:
             device = self.devices.get_device(device_id)
 
-            # Advance the sequence exactly every 1 cycle
             if device.siggen_counter == 1:
                 device.siggen_counter = 0
 
                 current_idx = device.siggen_index
                 next_idx = (current_idx + 1) % len(device.siggen_waveform)
-
-                # Bits are now safely integers
                 current_bit = device.siggen_waveform[current_idx]
                 next_bit = device.siggen_waveform[next_idx]
 
