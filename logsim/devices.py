@@ -270,12 +270,15 @@ class Devices:
 
     def make_siggen(self, device_id, waveform):
         self.add_device(device_id, self.SIGGEN)
-        initial_signal = waveform[0] if waveform else self.LOW
+        clean_waveform = [int(bit) for bit in waveform]
+        
+        initial_signal = clean_waveform[0] if clean_waveform else self.LOW
         self.add_output(device_id, output_id = None, signal = initial_signal)
+        
         device = self.get_device(device_id)
-        device.siggen_waveform = waveform
-        device.siggen_half_period = 2
+        device.siggen_waveform = clean_waveform
         device.siggen_counter = 0
+        device.siggen_index = 0
 
     def cold_startup(self):
         """Simulate cold start-up of D-types and clocks.

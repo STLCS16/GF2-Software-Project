@@ -375,45 +375,59 @@ class Network:
             device.clock_counter += 1
 
     def execute_siggen(self, device_id):
-        """Simulate a siggen and update its output signal value.
-
-        Return True if successful.
-        """
-        print("checkpoint 2")
+        """Simulate a siggen and update its output signal value."""
         device = self.devices.get_device(device_id)
         if device is None or not device.siggen_waveform:
+            return False
+            
+        output_signal = device.outputs[None]
+        
+        if output_signal == self.devices.RISING:
+            new_signal = self.update_signal(output_signal, self.devices.HIGH)
+            if new_signal is None:
+                return False
+            device.outputs[None] = new_signal
             return True
-        print("device.siggen_counter",device.siggen_counter)
-        current_signal = device.siggen_waveform[device.siggen_counter]
-        device.outputs[None] = current_signal
-        device.siggen_counter = (device.siggen_counter +1)% len(device.siggen_waveform)
-        return True
+
+        elif output_signal == self.devices.FALLING:
+            new_signal = self.update_signal(output_signal, self.devices.LOW)
+            if new_signal is None:
+                return False
+            device.outputs[None] = new_signal
+            return True
+
+        elif output_signal in [self.devices.HIGH, self.devices.LOW]:
+            return True
+
+        else:
+            return False
 
     def update_siggens(self):
         siggen_devices = self.devices.find_devices(self.devices.SIGGEN)
         for device_id in siggen_devices:
             device = self.devices.get_device(device_id)
 
-            if device.siggen_counter == device.siggen_half_period:
+            # Advance the sequence exactly every 1 cycle
+            if device.siggen_counter == 1:
                 device.siggen_counter = 0
 
                 current_idx = device.siggen_index
-                next_idx = (current_idx +1)% len(device.siggen_waveform)
+                next_idx = (current_idx + 1) % len(device.siggen_waveform)
 
+                # Bits are now safely integers
                 current_bit = device.siggen_waveform[current_idx]
                 next_bit = device.siggen_waveform[next_idx]
 
                 if current_bit == self.devices.LOW and next_bit == self.devices.HIGH:
                     device.outputs[None] = self.devices.RISING
-                if current_bit == self.devices.HIGH and next_bit == self.devices.LOW:
+                elif current_bit == self.devices.HIGH and next_bit == self.devices.LOW:
                     device.outputs[None] = self.devices.FALLING
                 else:
-                    device.output[None] = next_bit
+                    device.outputs[None] = next_bit
                 
                 device.siggen_index = next_idx
 
             device.siggen_counter += 1
-
 
     def execute_network(self, cycle_num):
         """Execute all the devices in the network for one simulation cycle.
