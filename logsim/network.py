@@ -67,7 +67,7 @@ class Network:
 
         [self.NO_ERROR, self.INPUT_TO_INPUT, self.OUTPUT_TO_OUTPUT,
          self.INPUT_CONNECTED, self.PORT_ABSENT,
-         self.DEVICE_ABSENT] = self.names.unique_error_codes(6)
+         self.DEVICE_ABSENT, self.RECURSIVE] = self.names.unique_error_codes(7)
         self.steady_state = True  # for checking if signals have settled
 
     def get_connected_output(self, device_id, input_id):
@@ -116,6 +116,11 @@ class Network:
         first_device = self.devices.get_device(first_device_id)
         second_device = self.devices.get_device(second_device_id)
 
+        if first_device_id == second_device_id:
+            if first_device.device_kind != self.devices.D_TYPE:
+                error_type = self.RECURSIVE
+                error_device = 0
+                return error_type, error_device
         if first_device is None:
             error_type = self.DEVICE_ABSENT
             error_device = 0

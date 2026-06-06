@@ -499,6 +499,14 @@ class Parser:
                     False,
                     error_col,
                 )
+            else:
+                self.error(
+                    True,
+                    "Invalid connection. "
+                    "You cannot connect a non D-type device to itself.",
+                    False,
+                    error_col,
+                )
             raise ParseSemanticError()
         self.get_next_symbol()
 
