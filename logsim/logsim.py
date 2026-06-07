@@ -14,6 +14,7 @@ import getopt
 import sys
 
 import wx
+import os
 
 from names import Names
 from devices import Devices
@@ -25,6 +26,7 @@ from userint import UserInterface
 #from gui import Gui
 from gui_3D import Gui
 
+_ = wx.GetTranslation
 
 def main(arg_list):
     """Parse the command line options and arguments specified in arg_list.
@@ -79,6 +81,13 @@ def main(arg_list):
         if parser.parse_network():
             # Initialise an instance of the gui.Gui() class
             app = wx.App()
+            
+            app.locale = wx.Locale(wx.LANGUAGE_DEFAULT)
+
+            locale_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'locale')
+            app.locale.AddCatalogLookupPathPrefix(locale_dir)
+            app.locale.AddCatalog('logsim'
+                                  )
             gui = Gui("Logic Simulator", path, names, devices, network,
                       monitors)
             gui.Show(True)
