@@ -21,7 +21,6 @@ from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
 
-_ = wx.GetTranslation
 
 
 class MyGLCanvas(wxcanvas.GLCanvas):
@@ -317,18 +316,18 @@ class Gui(wx.Frame):
         # Configure the file menu
         fileMenu = wx.Menu()
         menuBar = wx.MenuBar()
-        fileMenu.Append(wx.ID_ABOUT, _("&About"))
-        fileMenu.Append(wx.ID_EXIT, _("&Exit"))
-        menuBar.Append(fileMenu, _("&File"))
+        fileMenu.Append(wx.ID_ABOUT, "&About")
+        fileMenu.Append(wx.ID_EXIT, "&Exit")
+        menuBar.Append(fileMenu, "&File")
         self.SetMenuBar(menuBar)
 
         # Canvas for drawing signals
         self.canvas = MyGLCanvas(self, devices, monitors)
 
         # Configure the widgets
-        self.text = wx.StaticText(self, wx.ID_ANY, _("Cycles"))
+        self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
-        self.run_button = wx.Button(self, wx.ID_ANY, _("Run"))
+        self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
                                     style=wx.TE_PROCESS_ENTER) 
 
