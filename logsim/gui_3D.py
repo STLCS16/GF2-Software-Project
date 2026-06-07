@@ -330,8 +330,7 @@ class Gui(wx.Frame):
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
         self.run_button = wx.Button(self, wx.ID_ANY, _("Run"))
         self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
-                                    style=wx.TE_PROCESS_ENTER)
-        self.non_latin_label = wx.StaticText(self, wx.ID_ANY, _("Chars: ") + "你好")
+                                    style=wx.TE_PROCESS_ENTER) 
 
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
