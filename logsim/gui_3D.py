@@ -358,8 +358,8 @@ class Gui(wx.Frame):
         if Id == wx.ID_EXIT:
             self.Close(True)
         if Id == wx.ID_ABOUT:
-            wx.MessageBox(_("Logic Simulator\nCreated by Mojisola Agboola\n2017"),
-                          _("About Logsim"), wx.ICON_INFORMATION | wx.OK)
+            wx.MessageBox("Logic Simulator\nCreated by Mojisola Agboola\n2017",
+                          "About Logsim", wx.ICON_INFORMATION | wx.OK)
 
     def on_spin(self, event):
         """Handle the event when the user changes the spin control value."""
