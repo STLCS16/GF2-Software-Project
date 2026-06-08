@@ -82,12 +82,22 @@ def main(arg_list):
             # Initialise an instance of the gui.Gui() class
             app = wx.App()
             
-            app.locale = wx.Locale(wx.LANGUAGE_DEFAULT)
+            lang_pref = "en"
+            if os.path.exists("lang_pref.txt"):
+                with open("lang_pref.txt","r") as f:
+                    lang_pref = f.read().strip()
+            
+            if lang_pref == "fr":
+                wx_lang = wx.LANGUAGE_FRENCH
+            elif lang_pref == "zh_CN":
+                wx_lang = wx.LANGUAGE_CHINESE_SIMPLIFIED
+            else:
+                wx_lang = wx.LANGUAGE_ENGLISH
+            app.locale = wx.Locale(wx_lang)
 
             locale_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'locale')
             app.locale.AddCatalogLookupPathPrefix(locale_dir)
-            app.locale.AddCatalog('logsim'
-                                  )
+            app.locale.AddCatalog('logsim')
             gui = Gui("Logic Simulator", path, names, devices, network,
                       monitors)
             gui.Show(True)

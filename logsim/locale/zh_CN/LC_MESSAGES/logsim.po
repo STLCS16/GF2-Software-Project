@@ -28,6 +28,9 @@ msgstr "鼠标滚轮向下旋转。当前缩放为: %s"
 msgid "Positive mouse wheel rotation. Zoom is now: %s"
 msgstr "鼠标滚轮向上旋转。当前缩放为: %s"
 
+msgid "&Language"
+msgstr "语言"
+
 msgid "&About"
 msgstr "关于(&A)"
 

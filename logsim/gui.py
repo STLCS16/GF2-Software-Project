@@ -14,7 +14,7 @@ import wx.glcanvas as wxcanvas
 import math
 import numpy as np
 from OpenGL import GL, GLUT, GLU
-
+import os
 from names import Names
 from devices import Devices
 from network import Network
@@ -449,12 +449,28 @@ class Gui(wx.Frame):
         self.cycles_completed = 0
 
         # Configure the file menu.
-        fileMenu = wx.Menu()
         menuBar = wx.MenuBar()
+        fileMenu = wx.Menu()
+        langMenu = wx.Menu()
+
+        # Define IDs BEFORE appending them
+        self.ID_LANG_EN = wx.NewIdRef()
+        self.ID_LANG_FR = wx.NewIdRef()
+        self.ID_LANG_ZH = wx.NewIdRef()
+
+        # Build the language submenu
+        langMenu.Append(self.ID_LANG_EN, "English")
+        langMenu.Append(self.ID_LANG_FR, "Français")
+        langMenu.Append(self.ID_LANG_ZH, "中文")
+
+        # Assemble the top-level file menu
         fileMenu.Append(wx.ID_ABOUT, _("&About"))
+        fileMenu.AppendSubMenu(langMenu, _("&Language"))
         fileMenu.Append(wx.ID_EXIT, _("&Exit"))
+        
         menuBar.Append(fileMenu, _("&File"))
         self.SetMenuBar(menuBar)
+
 
         self.canvas = MyGLCanvas(self, devices, monitors)
         canvas_panel = wx.Panel(self)
@@ -527,9 +543,27 @@ class Gui(wx.Frame):
         Id = event.GetId()
         if Id == wx.ID_EXIT:
             self.Close(True)
-        if Id == wx.ID_ABOUT:
+        elif Id == wx.ID_ABOUT:
             message = _("Logic Simulator designed by group 14\nDefinition file used: %s") % str(self.path)
             wx.MessageBox(message, _("About Logsim"), wx.ICON_INFORMATION | wx.OK)
+        elif Id == self.ID_LANG_EN.GetId():
+            self.change_language("en")
+        elif Id == self.ID_LANG_FR.GetId():
+            self.change_language("fr")
+        elif Id == self.ID_LANG_ZH.GetId():
+            self.change_language("zh_CN")
+                
+    def change_language(self, lang_code):
+        """Save language preference to a file and prompt the user to restart."""
+        with open("lang_pref.txt", "w") as f:
+            f.write(lang_code)
+        
+        wx.MessageBox(
+            _("Language changed. Please restart the application to apply changes."),
+            _("Restart Required"), 
+            wx.ICON_INFORMATION | wx.OK
+        )
+
 
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
@@ -809,8 +843,26 @@ class Gui(wx.Frame):
     def write_output(self, message):
         self.output_box.AppendText(message + "\n")
 
+
 if __name__ == "__main__":
     app = wx.App()
+    
+    lang_pref = "en"
+    if os.path.exists("lang_pref.txt"):
+        with open("lang_pref.txt", "r") as f:
+            lang_pref = f.read().strip()
+
+    if lang_pref == "fr":
+        wx_lang = wx.LANGUAGE_FRENCH
+    elif lang_pref == "zh_CN":
+        wx_lang = wx.LANGUAGE_CHINESE_SIMPLIFIED
+    else:
+        wx_lang = wx.LANGUAGE_ENGLISH
+
+    locale = wx.Locale(wx_lang)
+    locale.AddCatalogLookupPathPrefix('locale')
+    locale.AddCatalog('logsim')
+    
     gui = Gui("Logic Simulator GUI Test", path=None, names=None, devices=None, network=None, monitors=None)
     gui.Show()
     app.MainLoop()
