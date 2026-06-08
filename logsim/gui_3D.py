@@ -22,6 +22,7 @@ from scanner import Scanner
 from parse import Parser
 
 
+
 class MyGLCanvas(wxcanvas.GLCanvas):
     """Handle all drawing operations.
 
@@ -328,7 +329,7 @@ class Gui(wx.Frame):
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
-                                    style=wx.TE_PROCESS_ENTER)
+                                    style=wx.TE_PROCESS_ENTER) 
 
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
