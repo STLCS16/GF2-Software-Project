@@ -11,7 +11,9 @@ Gui - configures the main window and all the widgets.
 """
 import wx
 import wx.glcanvas as wxcanvas
-from OpenGL import GL, GLUT
+import math
+import numpy as np
+from OpenGL import GL, GLUT, GLU
 
 from names import Names
 from devices import Devices
@@ -66,6 +68,28 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Text displayed in the canvas. This is updated by the Gui class.
         self.display_text = "Logic simulator canvas"
 
+        # Display mode: either "2D" or "3D".
+        self.trace_mode = "2D"
+
+        # 3D rotation matrix
+        self.scene_rotate = np.identity(4, "f")
+
+        # Distance between viewer and 3D scene.
+        self.depth_offset = 1000
+
+        # Constants for OpenGL materials and lights.
+        self.mat_diffuse = [0.0, 0.0, 0.0, 1.0]
+        self.mat_no_specular = [0.0, 0.0, 0.0, 0.0] 
+        self.mat_no_shininess = [0.0]
+        self.mat_specular = [0.5, 0.5, 0.5, 1.0]
+        self.mat_shininess = [50.0]
+        self.top_right = [1.0, 1.0, 1.0, 0.0]
+        self.straight_on = [0.0, 0.0, 1.0, 0.0]
+        self.no_ambient = [0.0, 0.0, 0.0, 1.0]
+        self.dim_diffuse = [0.5, 0.5, 0.5, 1.0]
+        self.med_diffuse = [0.75, 0.75, 0.75, 1.0]
+        self.no_specular = [0.0, 0.0, 0.0, 1.0]
+
         # Initialise variables for panning.
         self.pan_x = 0
         self.pan_y = 0
@@ -82,6 +106,13 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def init_gl(self):
         """Configure and initialise the OpenGL context."""
+        if self.trace_mode == "2D":
+            self.init_gl_2d()
+        else:
+            self.init_gl_3d()
+
+    def init_gl_2d(self):
+        """Configure and initialise the OpenGL context."""
         size = self.GetClientSize()
         self.SetCurrent(self.context)
         GL.glDrawBuffer(GL.GL_BACK)
@@ -94,35 +125,81 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glLoadIdentity()
         GL.glTranslated(self.pan_x, self.pan_y, 0.0)
         GL.glScaled(self.zoom, self.zoom, self.zoom)
-        GL.glTranslated(self.pan_x, self.pan_y, 0.0)
-        GL.glScaled(self.zoom, self.zoom, self.zoom)
+ 
+    def init_gl_3d(self):
+        """Configure OpenGL for the 3D trace view."""
+        size = self.GetClientSize()
+        self.SetCurrent(self.context)
+
+        GL.glViewport(0, 0, size.width, size.height)
+
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GLU.gluPerspective(45, size.width / size.height, 10, 10000)
+
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
+
+        GL.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, self.no_ambient)
+        GL.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, self.med_diffuse)
+        GL.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, self.no_specular)
+        GL.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, self.top_right)
+        GL.glLightfv(GL.GL_LIGHT1, GL.GL_AMBIENT, self.no_ambient)
+        GL.glLightfv(GL.GL_LIGHT1, GL.GL_DIFFUSE, self.dim_diffuse)
+        GL.glLightfv(GL.GL_LIGHT1, GL.GL_SPECULAR, self.no_specular)
+        GL.glLightfv(GL.GL_LIGHT1, GL.GL_POSITION, self.straight_on)
+
+        GL.glMaterialfv(GL.GL_FRONT, GL.GL_SPECULAR, self.mat_specular)
+        GL.glMaterialfv(GL.GL_FRONT, GL.GL_SHININESS, self.mat_shininess)
+        GL.glMaterialfv(
+            GL.GL_FRONT,
+            GL.GL_AMBIENT_AND_DIFFUSE,
+            self.mat_diffuse
+        )
+        GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
+
+        GL.glClearColor(0.0, 0.0, 0.0, 0.0)
+        GL.glDepthFunc(GL.GL_LEQUAL)
+        GL.glShadeModel(GL.GL_SMOOTH)
+        GL.glDrawBuffer(GL.GL_BACK)
+        GL.glCullFace(GL.GL_BACK)
+        GL.glEnable(GL.GL_COLOR_MATERIAL)
+        GL.glEnable(GL.GL_CULL_FACE)
+        GL.glEnable(GL.GL_DEPTH_TEST)
+        GL.glEnable(GL.GL_LIGHTING)
+        GL.glEnable(GL.GL_LIGHT0)
+        GL.glEnable(GL.GL_LIGHT1)
+        GL.glEnable(GL.GL_NORMALIZE)
+
+        GL.glTranslatef(0.0, 0.0, -self.depth_offset)
+        GL.glTranslatef(self.pan_x, self.pan_y, 0.0)
+        GL.glMultMatrixf(self.scene_rotate)
+        GL.glScalef(self.zoom, self.zoom, self.zoom)
 
     def render(self, text=None):
         """Handle all drawing operations."""
         self.SetCurrent(self.context)
+
         if not self.init:
-            # Configure the viewport, modelview and projection matrices.
             self.init_gl()
             self.init = True
 
         if text is not None:
             self.display_text = text
 
-        size = self.GetClientSize()
+        if self.trace_mode == "2D":
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+            size = self.GetClientSize()
+            self.render_text_2d(self.display_text, 10, size.height - 20)
+            self.draw_monitor_traces_2d()
+        else:
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+            self.draw_monitor_traces_3d()
 
-        # Clear everything.
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
-
-        # Draw useful status text at the top-left of the canvas.
-        self.render_text(self.display_text, 10, size.height - 20)
-        self.draw_monitor_traces()
-
-        # We have been drawing to the back buffer, so flush the graphics
-        # pipeline and swap the back buffer to the front.
         GL.glFlush()
         self.SwapBuffers()
 
-    def draw_monitor_traces(self):
+    def draw_monitor_traces_2d(self):
         """Draw the monitor trace from self.monitors."""
         start_x = 100
         start_y = 230
@@ -144,9 +221,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             high_y = low_y + trace_height
 
             # Draw the signal name on the left.
-            self.render_text(signal_name, 10, low_y)
-            self.render_text("1", 50, high_y)
-            self.render_text("0", 50, low_y)
+            self.render_text_2d(signal_name, 10, low_y)
+            self.render_text_2d("1", 50, high_y)
+            self.render_text_2d("0", 50, low_y)
             GL.glColor3f(0.0, 0.0, 1.0)
             GL.glBegin(GL.GL_LINE_STRIP)
 
@@ -179,6 +256,118 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
             GL.glEnd()
 
+    def draw_cuboid(self, x_pos, z_pos, half_width, half_depth, height):
+        """Draw a cuboid at the specified position."""
+        GL.glBegin(GL.GL_QUADS)
+        GL.glNormal3f(0, -1, 0)
+        GL.glVertex3f(x_pos - half_width, -6, z_pos - half_depth)
+        GL.glVertex3f(x_pos + half_width, -6, z_pos - half_depth)
+        GL.glVertex3f(x_pos + half_width, -6, z_pos + half_depth)
+        GL.glVertex3f(x_pos - half_width, -6, z_pos + half_depth)
+
+        GL.glNormal3f(0, 1, 0)
+        GL.glVertex3f(x_pos + half_width, -6 + height, z_pos - half_depth)
+        GL.glVertex3f(x_pos - half_width, -6 + height, z_pos - half_depth)
+        GL.glVertex3f(x_pos - half_width, -6 + height, z_pos + half_depth)
+        GL.glVertex3f(x_pos + half_width, -6 + height, z_pos + half_depth)
+
+        GL.glNormal3f(-1, 0, 0)
+        GL.glVertex3f(x_pos - half_width, -6 + height, z_pos - half_depth)
+        GL.glVertex3f(x_pos - half_width, -6, z_pos - half_depth)
+        GL.glVertex3f(x_pos - half_width, -6, z_pos + half_depth)
+        GL.glVertex3f(x_pos - half_width, -6 + height, z_pos + half_depth)
+
+        GL.glNormal3f(1, 0, 0)
+        GL.glVertex3f(x_pos + half_width, -6, z_pos - half_depth)
+        GL.glVertex3f(x_pos + half_width, -6 + height, z_pos - half_depth)
+        GL.glVertex3f(x_pos + half_width, -6 + height, z_pos + half_depth)
+        GL.glVertex3f(x_pos + half_width, -6, z_pos + half_depth)
+
+        GL.glNormal3f(0, 0, -1)
+        GL.glVertex3f(x_pos - half_width, -6, z_pos - half_depth)
+        GL.glVertex3f(x_pos - half_width, -6 + height, z_pos - half_depth)
+        GL.glVertex3f(x_pos + half_width, -6 + height, z_pos - half_depth)
+        GL.glVertex3f(x_pos + half_width, -6, z_pos - half_depth)
+
+        GL.glNormal3f(0, 0, 1)
+        GL.glVertex3f(x_pos - half_width, -6 + height, z_pos + half_depth)
+        GL.glVertex3f(x_pos - half_width, -6, z_pos + half_depth)
+        GL.glVertex3f(x_pos + half_width, -6, z_pos + half_depth)
+        GL.glVertex3f(x_pos + half_width, -6 + height, z_pos + half_depth)
+        GL.glEnd()
+
+    def draw_monitor_traces_3d(self):
+        """Draw all monitored signals as 3D cuboid traces.
+
+        Each signal is drawn as a row of cuboids. The z-axis represents
+        simulation time, the x-axis separates monitored signals, and cuboid
+        height represents LOW or HIGH.
+        """
+        half_width = 6
+        half_depth = 10
+        signal_spacing = 45
+        cycle_spacing = 22
+
+        high_height = 35
+        low_height = 5
+
+        number_of_traces = len(self.monitors.monitors_dictionary)
+        centre_offset = (number_of_traces - 1) * signal_spacing / 2
+
+        GL.glColor3f(1.0, 0.7, 0.5)
+
+        for trace_index, (device_id, output_id) in enumerate(
+                self.monitors.monitors_dictionary):
+
+            signal_list = self.monitors.monitors_dictionary[
+                (device_id, output_id)
+            ]
+
+            signal_name = self.devices.get_signal_name(device_id, output_id)
+
+            x_pos = trace_index * signal_spacing - centre_offset
+
+            for cycle_index, signal in enumerate(signal_list):
+                z_pos = cycle_index * cycle_spacing
+
+                if signal == self.devices.HIGH:
+                    height = high_height
+                elif signal == self.devices.RISING:
+                    height = high_height
+                elif signal == self.devices.LOW:
+                    height = low_height
+                elif signal == self.devices.FALLING:
+                    height = low_height
+                else:
+                    continue
+
+                self.draw_cuboid(
+                    x_pos,
+                    z_pos,
+                    half_width,
+                    half_depth,
+                    height
+                )
+
+            GL.glColor3f(1.0, 1.0, 1.0)
+            self.render_text_3d(signal_name, x_pos - 10, 0, -35)
+            GL.glColor3f(1.0, 0.7, 0.5)
+
+    def render_text_3d(self, text, x_pos, y_pos, z_pos):
+        """Draw text in the 3D scene."""
+        GL.glDisable(GL.GL_LIGHTING)
+        GL.glRasterPos3f(x_pos, y_pos, z_pos)
+        font = GLUT.GLUT_BITMAP_HELVETICA_10
+
+        for character in text:
+            if character == "\n":
+                y_pos = y_pos - 20
+                GL.glRasterPos3f(x_pos, y_pos, z_pos)
+            else:
+                GLUT.glutBitmapCharacter(font, ord(character))
+
+        GL.glEnable(GL.GL_LIGHTING)
+
     def on_paint(self, event):
         """Handle the paint event."""
         self.SetCurrent(self.context)
@@ -197,6 +386,13 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.Refresh()
 
     def on_mouse(self, event):
+        """Handle mouse events."""
+        if self.trace_mode == "2D":
+            self.on_mouse_2d(event)
+        else:
+            self.on_mouse_3d(event)
+
+    def on_mouse_2d(self, event):
         """Handle mouse events."""
         text = ""
 
@@ -255,7 +451,45 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         else:
             self.Refresh()
 
-    def render_text(self, text, x_pos, y_pos):
+    def on_mouse_3d(self, event):
+        """Handle mouse events."""
+        self.SetCurrent(self.context)
+
+        if event.ButtonDown():
+            self.last_mouse_x = event.GetX()
+            self.last_mouse_y = event.GetY()
+
+        if event.Dragging():
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+            GL.glLoadIdentity()
+            x = event.GetX() - self.last_mouse_x
+            y = event.GetY() - self.last_mouse_y
+            if event.LeftIsDown():
+                GL.glRotatef(math.sqrt((x * x) + (y * y)), y, x, 0)
+            if event.MiddleIsDown():
+                GL.glRotatef((x + y), 0, 0, 1)
+            if event.RightIsDown():
+                self.pan_x += x
+                self.pan_y -= y
+            GL.glMultMatrixf(self.scene_rotate)
+            GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX, self.scene_rotate)
+            self.last_mouse_x = event.GetX()
+            self.last_mouse_y = event.GetY()
+            self.init = False
+
+        if event.GetWheelRotation() < 0:
+            self.zoom *= (1.0 + (
+                event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            self.init = False
+
+        if event.GetWheelRotation() > 0:
+            self.zoom /= (1.0 - (
+                event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            self.init = False
+
+        self.Refresh()  # triggers the paint event
+
+    def render_text_2d(self, text, x_pos, y_pos):
         """Handle text drawing operations."""
         GL.glColor3f(0.0, 0.0, 0.0)
         GL.glRasterPos2f(x_pos, y_pos)
@@ -382,10 +616,16 @@ class Gui(wx.Frame):
         self.continue_button = wx.Button(terminal_panel, wx.ID_ANY,
                                          "Continue")
         self.stop_button = wx.Button(terminal_panel, wx.ID_ANY, "Stop")
+        self.trace_mode_button = wx.Button(
+            terminal_panel,
+            wx.ID_ANY,
+            "3D Trace"
+        )
 
         toolbar_sizer.Add(self.run_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.continue_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.stop_button, 0, wx.RIGHT, 5)
+        toolbar_sizer.Add(self.trace_mode_button, 0, wx.RIGHT, 5)
 
         # A small read-only box for status messages and command feedback.
         self.output_box = wx.TextCtrl(terminal_panel, wx.ID_ANY, "",
@@ -434,6 +674,8 @@ class Gui(wx.Frame):
         self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
         self.stop_button.Bind(wx.EVT_BUTTON, self.on_stop_button)
         self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
+
+        self.trace_mode_button.Bind(wx.EVT_BUTTON, self.on_trace_mode_button)
         self.h_scroll.Bind(wx.EVT_SLIDER, self.on_horizontal_scroll)
         self.v_scroll.Bind(wx.EVT_SLIDER, self.on_vertical_scroll)
 
@@ -497,6 +739,20 @@ class Gui(wx.Frame):
         command = self.text_box.GetValue().strip()
         self.process_command(command)
         self.text_box.Clear()
+
+    def on_trace_mode_button(self, event):
+        """Switch between 2D and 3D signal trace views."""
+        if self.canvas.trace_mode == "2D":
+            self.canvas.trace_mode = "3D"
+            self.trace_mode_button.SetLabel("2D Trace")
+            self.write_output("Switched to 3D trace view.")
+        else:
+            self.canvas.trace_mode = "2D"
+            self.trace_mode_button.SetLabel("3D Trace")
+            self.write_output("Switched to 2D trace view.")
+
+        self.canvas.init = False
+        self.canvas.Refresh()
 
     def update_switch_box(self):
         """Refresh value in the switch box."""
@@ -790,7 +1046,7 @@ class Gui(wx.Frame):
 
     def do_one_simulation_cycle(self):
         """Run one network cycle and record monitor signals."""
-        success = self.network.execute_network()
+        success = self.network.execute_network(self.cycles_completed)
 
         if success:
 
