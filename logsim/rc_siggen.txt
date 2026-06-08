@@ -1,0 +1,17 @@
+DEVICES:
+C = CLOCK(1);
+S = SIGGEN(11011);
+RC1 = RC(5);
+SW = SWITCH(0);
+D = DTYPE;
+
+CONNECTIONS:
+C -> D.CLK;
+S -> D.DATA;
+SW -> D.CLEAR;
+RC1 -> D.SET;
+
+SIGNALS:
+D.Q;
+
+END

@@ -22,8 +22,8 @@ from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
 from userint import UserInterface
-#from gui import Gui
-from gui_3D import Gui
+from gui import Gui
+#from gui_3D import Gui
 
 
 def main(arg_list):

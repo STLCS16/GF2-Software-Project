@@ -415,7 +415,7 @@ class Network:
             device.siggen_counter += 1
 
 
-    def execute_network(self, cycle_num):
+    def execute_network(self, cycle_num=None):
         """Execute all the devices in the network for one simulation cycle.
 
         Return True if successful and the network does not oscillate.
@@ -447,55 +447,44 @@ class Network:
 
             for device_id in switch_devices:  # execute switch devices
                 if not self.execute_switch(device_id):
-                    print("a")
                     return False
             # Execute D-type devices before clocks to catch the rising edge of
             # the clock
             for device_id in d_type_devices:  # execute DTYPE devices
                 if not self.execute_d_type(device_id):
-                    print("b")
                     return False
             for device_id in clock_devices:  # complete clock executions
                 if not self.execute_clock(device_id):
-                    print("c")
                     return False
             for device_id in and_devices:  # execute AND gate devices
                 if not self.execute_gate(device_id, self.devices.HIGH,
                                          self.devices.HIGH):
-                    print("d")
                     return False
             for device_id in or_devices:  # execute OR gate devices
                 if not self.execute_gate(device_id, self.devices.LOW,
                                          self.devices.LOW):
-                    print("e")
                     return False
             for device_id in nand_devices:  # execute NAND gate devices
                 if not self.execute_gate(device_id, self.devices.HIGH,
                                          self.devices.LOW):
-                    print("f")
                     return False
             for device_id in nor_devices:  # execute NOR gate devices
                 if not self.execute_gate(device_id, self.devices.LOW,
                                          self.devices.HIGH):
-                    print("g")
                     return False
             for device_id in xor_devices:  # execute XOR devices
                 if not self.execute_gate(device_id, None, None):
-                    print("h")
                     return False
             for device_id in not_devices:  # execute NOT devices
                 if not self.execute_gate(device_id, self.devices.HIGH,
                                          self.devices.LOW):
-                    print("i")
                     return False
             for device_id in rc_devices: # execute RC devices
                 if not self.execute_rc(cycle_num):
-                    print("j")
                     return False
 
             for device_id in siggen_devices:
                 if not self.execute_siggen(device_id): # complete clock executions
-                    print("checkpoint 1")
                     return False
 
                 
