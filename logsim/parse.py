@@ -23,10 +23,8 @@ class ParseSemanticError(Exception):
 
     pass
 
-
 class MissingConnectionsHeader(Exception):
-    """Custom exception raised when the program discovers that
-    the CONNECTIONS header is missing."""
+    """Custom exception raised when the program discovers that the CONNECTIONS header is missing."""
 
     pass
 
@@ -78,7 +76,7 @@ class Parser:
         self.previous_column = 0
         self.previous_symbol_length = 0
         self.previous_symbol = None
-
+        
         self.DEVICES_ID = self.names.lookup(["DEVICES"])[0]
         self.CONNECTIONS_ID = self.names.lookup(["CONNECTIONS"])[0]
         self.SIGNALS_ID = self.names.lookup(["SIGNALS"])[0]
@@ -101,29 +99,16 @@ class Parser:
 
             if self.symbol.id != self.DEVICES_ID:
                 if self.symbol.id == self.CONNECTIONS_ID:
-                    self.error(
-                        False,
-                        "Sections out of order. Found 'CONNECTIONS' "
-                        "before 'DEVICES'.",
-                        False)
+                    self.error(False, "Sections out of order. Found 'CONNECTIONS' before 'DEVICES'.", False)
                 elif self.symbol.id == self.SIGNALS_ID:
-                    self.error(
-                        False,
-                        "Sections out of order. Found 'SIGNALS' "
-                        "before 'DEVICES'.",
-                        False)
+                    self.error(False, "Sections out of order. Found 'SIGNALS' before 'DEVICES'.", False)
                 else:
                     self.error(False, "Expected 'DEVICES' header.", False)
-
-                while (
-                    self.symbol.id not in [
-                        self.DEVICES_ID,
-                        self.CONNECTIONS_ID,
-                        self.SIGNALS_ID] and self.symbol.type not in [
-                        self.scanner.END,
-                        self.scanner.EOF]):
+                
+                while (self.symbol.id not in [self.DEVICES_ID, self.CONNECTIONS_ID, self.SIGNALS_ID] and 
+                       self.symbol.type not in [self.scanner.END, self.scanner.EOF]):
                     self.get_next_symbol()
-
+            
             if self.symbol.id == self.DEVICES_ID:
                 self.get_next_symbol()
                 if self.symbol.type != self.scanner.COLON:
@@ -131,16 +116,12 @@ class Parser:
                 else:
                     self.get_next_symbol()
 
-                device_count = 0
-                while self.symbol.id != (self.CONNECTIONS_ID and
-                                         self.symbol.type not in [
-                        self.scanner.END, self.scanner.EOF]):
+                device_count = 0 
+                while self.symbol.id != self.CONNECTIONS_ID and self.symbol.type not in [self.scanner.END, self.scanner.EOF]:
                     if self.symbol.id == self.SIGNALS_ID:
-                        break
+                        break  
                     if self.symbol.id == self.DEVICES_ID:
-                        self.error(
-                            False, "Duplicate 'DEVICES' header detected.",
-                            False)
+                        self.error(False, "Duplicate 'DEVICES' header detected.", False)
                         self.get_next_symbol()
                         continue
                     try:
@@ -150,35 +131,18 @@ class Parser:
                         self.get_next_symbol()
 
                 if device_count == 0:
-                    self.error(
-                        False,
-                        "DEVICES section cannot be empty. "
-                        "Expected at least one device.",
-                        False)
+                    self.error(False, "DEVICES section cannot be empty. Expected at least one device.", False)
 
             if self.symbol.id != self.CONNECTIONS_ID:
                 if self.symbol.id == self.SIGNALS_ID:
-                    self.error(
-                        False,
-                        "Sections out of order. Found 'SIGNALS'"
-                        " before 'CONNECTIONS'.",
-                        False)
+                    self.error(False, "Sections out of order. Found 'SIGNALS' before 'CONNECTIONS'.", False)
                 elif self.symbol.id == self.DEVICES_ID:
-                    self.error(
-                        False,
-                        "Sections out of order. Found 'DEVICES' "
-                        "out of sequence.",
-                        False)
+                    self.error(False, "Sections out of order. Found 'DEVICES' out of sequence.", False)
                 else:
-                    self.error(False, "Expected 'CONNECTIONS' "
-                               "header.", False)
+                    self.error(False, "Expected 'CONNECTIONS' header.", False)
 
-                while (
-                    self.symbol.id not in [
-                        self.CONNECTIONS_ID,
-                        self.SIGNALS_ID] and self.symbol.type not in [
-                        self.scanner.END,
-                        self.scanner.EOF]):
+                while (self.symbol.id not in [self.CONNECTIONS_ID, self.SIGNALS_ID] and 
+                       self.symbol.type not in [self.scanner.END, self.scanner.EOF]):
                     self.get_next_symbol()
 
             if self.symbol.id == self.CONNECTIONS_ID:
@@ -189,14 +153,9 @@ class Parser:
                     self.get_next_symbol()
 
                 connection_count = 0
-                while self.symbol.id != (self.SIGNALS_ID and
-                                         self.symbol.type not in [
-                        self.scanner.END, self.scanner.EOF]):
-                    if self.symbol.id in [
-                            self.DEVICES_ID, self.CONNECTIONS_ID]:
-                        self.error(
-                            False, "Misplaced section header found "
-                            "inside CONNECTIONS section.", False)
+                while self.symbol.id != self.SIGNALS_ID and self.symbol.type not in [self.scanner.END, self.scanner.EOF]:
+                    if self.symbol.id in [self.DEVICES_ID, self.CONNECTIONS_ID]:
+                        self.error(False, "Misplaced section header found inside CONNECTIONS section.", False)
                         self.get_next_symbol()
                         continue
                     try:
@@ -206,32 +165,20 @@ class Parser:
                         self.get_next_symbol()
 
                 if connection_count == 0:
-                    self.error(
-                        False,
-                        "CONNECTIONS section cannot be empty. "
-                        "Expected at least one connection.",
-                        False)
+                    self.error(False, "CONNECTIONS section cannot be empty. Expected at least one connection.", False)
 
             for device_id in self.devices.find_devices():
                 device = self.devices.get_device(device_id)
                 if None in device.inputs.values():
-                    self.error(
-                        True, "Not all inputs are connected, "
-                        "please connect all inputs.", True)
+                    self.error(True, "Not all inputs are connected, please connect all inputs.", True)
 
             if self.symbol.id != self.SIGNALS_ID:
                 if self.symbol.id in [self.DEVICES_ID, self.CONNECTIONS_ID]:
-                    self.error(
-                        False,
-                        "Sections out of order. 'SIGNALS' header "
-                        "is missing or displaced.",
-                        False)
+                    self.error(False, "Sections out of order. 'SIGNALS' header is missing or displaced.", False)
                 else:
                     self.error(False, "Expected 'SIGNALS' header.", False)
 
-                while self.symbol.id != (self.SIGNALS_ID and
-                                         self.symbol.type not in [
-                        self.scanner.END, self.scanner.EOF]):
+                while self.symbol.id != self.SIGNALS_ID and self.symbol.type not in [self.scanner.END, self.scanner.EOF]:
                     self.get_next_symbol()
 
             if self.symbol.id == self.SIGNALS_ID:
@@ -242,41 +189,30 @@ class Parser:
                     self.get_next_symbol()
 
                 if self.symbol.type == self.scanner.END:
-                    self.error(
-                        False,
-                        "SIGNALS section cannot be empty. "
-                        "Expected at least one monitored signal.",
-                        False)
+                    self.error(False, "SIGNALS section cannot be empty. Expected at least one monitored signal.", False)
 
                 try:
                     self.signals()
                 except (ParseSyntaxError, ParseSemanticError):
-                    while self.symbol.type not in [
-                            self.scanner.END, self.scanner.EOF]:
+                    while self.symbol.type not in [self.scanner.END, self.scanner.EOF]:
                         self.get_next_symbol()
 
             if self.symbol.type != self.scanner.END:
                 self.error(False, "Expected 'END' header.", False)
-                while self.symbol.type not in [
-                        self.scanner.END, self.scanner.EOF]:
+                while self.symbol.type not in [self.scanner.END, self.scanner.EOF]:
                     self.get_next_symbol()
 
             if self.symbol.type == self.scanner.END:
                 self.get_next_symbol()
 
             if self.symbol.type != self.scanner.EOF:
-                self.error(
-                    False,
-                    "Expected no more text after 'END'. Expected end of file.",
-                    False)
+                self.error(False, "Expected no more text after 'END'. Expected end of file.", False)
                 return False
 
             return self.error_count == 0
 
         except (ParseSyntaxError, ParseSemanticError):
-            print(
-                "Parser execution halted prematurely "
-                "due to catastrophic structural flaws.")
+            print("Parser execution halted prematurely due to catastrophic structural flaws.")
             return False
 
     def name(self):
@@ -327,12 +263,9 @@ class Parser:
 
         if self.symbol.type != self.scanner.EQUAL:
             if self.symbol.type == self.scanner.ARROW:
-                raise (MissingConnectionsHeader)
+                raise(MissingConnectionsHeader)
             else:
-                self.error(
-                    False,
-                    "Invalid assignment. Expected '=' sign.",
-                    False)
+                self.error(False, "Invalid assignment. Expected '=' sign.", False)
                 raise ParseSyntaxError()
         self.get_next_symbol()
 
@@ -345,9 +278,8 @@ class Parser:
 
             if self.symbol.type != self.scanner.NUMBER:
                 self.error(
-                    False,
-                    "Invalid parameter. Expected a positive number.",
-                    False)
+                    False, "Invalid parameter. Expected a positive number.", False
+                )
                 raise ParseSyntaxError()
 
             self.assignment_dict["parameter"] = self.current_column
@@ -452,18 +384,10 @@ class Parser:
                 parameter = None
         elif device_id == self.SIGGEN_ID:
             if parameter is None:
-                self.error(
-                    True,
-                    "Parameters is required for signal generator",
-                    False,
-                    self.assignment_dict["parameter"])
+                self.error(True, "Parameters is required for signal generator", False, self.assignment_dict["parameter"])
                 raise ParseSemanticError()
             if not isinstance(parameter, tuple):
-                self.error(
-                    True,
-                    "SIGGEN requires a valid waveform bit sequence",
-                    False,
-                    self.assignment_dict["parameter"])
+                self.error(True, "SIGGEN requires a valid waveform bit sequence", False, self.assignment_dict["parameter"])
                 raise ParseSemanticError()
         error_code = self.devices.make_device(name_id, device_id, parameter)
         if error_code != self.devices.NO_ERROR:

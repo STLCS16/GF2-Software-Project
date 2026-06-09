@@ -111,11 +111,9 @@ class Scanner:
         self.identifier_set = set(self.identifier_list)
 
     def get_symbol(self):
-        """Translate the next sequence of characters into a symbol."""
-        self.skip_spaces_and_comments()  # current character now not whitespace
+        self.skip_spaces_and_comments()
 
         self.symbol = Symbol()
-
         self.symbol.line = self.line_number
         self.symbol.column = self.column_number
 
@@ -129,8 +127,7 @@ class Scanner:
             name_string = name_list
             self.symbol.id = self.names.lookup([name_string])[0]
             self.symbol.length = len(name_list)
-            if name_string.islower():
-                return None
+            
             if name_string in self.heading_set:
                 self.symbol.type = self.HEADINGS
             elif name_string in self.end_list:
@@ -149,8 +146,7 @@ class Scanner:
             self.symbol.length = len(self.symbol.id)
             return self.symbol
 
-        # punctuation
-        elif self.current_character == ";":
+        if self.current_character == ";":
             self.symbol.type = self.SEMICOLON
             self.symbol.length = 1
             self.advance()
@@ -187,10 +183,11 @@ class Scanner:
             else:
                 self.symbol.type = self.INVALID
                 self.symbol.length = 0
-
         else:
-            self.advance()
             self.symbol.type = self.INVALID
+            self.symbol.length = 0
+            self.advance()
+
         return self.symbol
 
     def get_name(self):

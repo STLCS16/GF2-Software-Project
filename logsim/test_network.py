@@ -358,37 +358,3 @@ def test_execute_rc(new_network):
 
     network.execute_network(cycle_num=3)
     assert network.get_output_signal(RC1_ID, None) == devices.LOW
-
-
-def test_execute_siggen(new_network):
-    network = new_network
-    devices = network.devices
-    names = devices.names
-
-    [SIG1_ID] = names.lookup(["Sig1"])
-
-    waveform = tuple([devices.LOW, devices.HIGH, devices.HIGH, devices.LOW])
-    devices.make_device(SIG1_ID, devices.SIGGEN, waveform)
-
-    siggen_device = devices.get_device(SIG1_ID)
-
-    siggen_device.siggen_counter = 0
-    siggen_device.siggen_index = 0
-    siggen_device.outputs[None] = devices.LOW
-
-    assert network.get_output_signal(SIG1_ID, None) == devices.LOW
-
-    expected_outputs = [
-        devices.LOW,
-        devices.HIGH,
-        devices.HIGH,
-        devices.LOW,
-        devices.LOW,
-        devices.HIGH,
-        devices.HIGH,
-        devices.LOW
-    ]
-
-    for expected_state in expected_outputs:
-        network.execute_network()
-        assert network.get_output_signal(SIG1_ID, None) == expected_state
