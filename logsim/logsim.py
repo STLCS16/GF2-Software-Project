@@ -24,9 +24,10 @@ from scanner import Scanner
 from parse import Parser
 from userint import UserInterface
 from gui import Gui
-#from gui_3D import Gui
+
 
 _ = wx.GetTranslation
+
 
 def main(arg_list):
     """Parse the command line options and arguments specified in arg_list.
@@ -82,12 +83,12 @@ def main(arg_list):
         if parser.parse_network():
             # Initialise an instance of the gui.Gui() class
             app = wx.App()
-            
+
             lang_pref = "en"
             if os.path.exists("lang_pref.txt"):
-                with open("lang_pref.txt","r") as f:
+                with open("lang_pref.txt", "r") as f:
                     lang_pref = f.read().strip()
-            
+
             if lang_pref == "fr":
                 wx_lang = wx.LANGUAGE_FRENCH
             elif lang_pref == "zh_CN":
@@ -96,7 +97,10 @@ def main(arg_list):
                 wx_lang = wx.LANGUAGE_ENGLISH
             app.locale = wx.Locale(wx_lang)
 
-            locale_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'locale')
+            locale_dir = os.path.join(
+                os.path.dirname(
+                    os.path.abspath(__file__)),
+                'locale')
             app.locale.AddCatalogLookupPathPrefix(locale_dir)
             app.locale.AddCatalog('logsim')
             gui = Gui("Logic Simulator", path, names, devices, network,

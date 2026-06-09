@@ -238,7 +238,8 @@ class Scanner:
         return self.current_character
 
     def print_error_line(self, error_line_number, error_column_number):
-        """Print the line of code and a caret pointing to the error location."""
+        """Print the line of code and a caret pointing
+        to the error location."""
         if error_line_number >= len(self.file_lines):
             print("Error occurred at the end of the file (unexpected EOF).")
             return

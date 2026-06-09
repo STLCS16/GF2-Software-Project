@@ -346,7 +346,8 @@ class Devices:
                 error_type = self.NO_QUALIFIER
             elif not isinstance(device_property, tuple):
                 error_type = self.INVALID_QUALIFIER
-            elif not all(bit in [self.LOW, self.HIGH] for bit in device_property):
+            elif not all(bit in [self.LOW, self.HIGH]
+                         for bit in device_property):
                 error_type = self.INVALID_QUALIFIER
             else:
                 self.make_siggen(device_id, device_property)
