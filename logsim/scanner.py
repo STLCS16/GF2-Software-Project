@@ -57,7 +57,7 @@ class Scanner:
         "HEADINGS", "END", "DEVICE", "IDENTIFIER", "NAME",
         "COMMA", "SEMICOLON", "EQUAL", "COLON", "DOT",
         "OPEN_PAREN", "CLOSE_PAREN", "ARROW", "NUMBER", "EOF", "INVALID"
-        )
+    )
 
     def __init__(self, path, names):
         """Scan the definition file and return tokens for the parser."""
@@ -86,7 +86,7 @@ class Scanner:
         self.device_list_ni = ["DTYPE", "NOT"]
         # i means need to specify number of input
         self.device_list_i = ["AND", "XOR", "OR",
-                              "NAND", "NOR", "CLOCK", "SWITCH","SIGGEN"]
+                              "NAND", "NOR", "CLOCK", "SWITCH", "SIGGEN"]
         self.names.lookup(self.device_list_ni + self.device_list_i)
         # identifier
         self.identifier_list = [f'I{i}' for i in range(
@@ -244,7 +244,7 @@ class Scanner:
             return
         code_line = self.file_lines[error_line_number]
         pointer_string = (" " * ((error_column_number - 1) +
-                          len(str(error_line_number+1))+8)) + "^"
+                          len(str(error_line_number + 1)) + 8)) + "^"
         print("Line", error_line_number + 1, ":", code_line)
         # print(code_line)
         print(pointer_string)

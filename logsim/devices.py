@@ -118,8 +118,12 @@ class Devices:
                              self.FALLING, self.BLANK] = range(5)
         self.gate_types = [self.NOT, self.AND, self.OR, self.NAND, self.NOR,
                            self.XOR] = self.names.lookup(gate_strings)
-        self.device_types = [self.CLOCK, self.SWITCH,
-                             self.D_TYPE, self.RC, self.SIGGEN] = self.names.lookup(device_strings)
+        self.device_types = [
+            self.CLOCK,
+            self.SWITCH,
+            self.D_TYPE,
+            self.RC,
+            self.SIGGEN] = self.names.lookup(device_strings)
         self.dtype_input_ids = [self.CLK_ID, self.SET_ID, self.CLEAR_ID,
                                 self.DATA_ID] = self.names.lookup(dtype_inputs)
         self.dtype_output_ids = [
@@ -262,7 +266,7 @@ class Devices:
         for output_id in self.dtype_output_ids:
             self.add_output(device_id, output_id)
         self.cold_startup()  # D-type initialised to a random state
-    
+
     def make_rc(self, device_id, no_of_cycles):
         """Make an RC device."""
         self.add_device(device_id, self.RC)
@@ -274,10 +278,10 @@ class Devices:
     def make_siggen(self, device_id, waveform):
         self.add_device(device_id, self.SIGGEN)
         clean_waveform = [int(bit) for bit in waveform]
-        
+
         initial_signal = clean_waveform[0] if clean_waveform else self.LOW
-        self.add_output(device_id, output_id = None, signal = initial_signal)
-        
+        self.add_output(device_id, output_id=None, signal=initial_signal)
+
         device = self.get_device(device_id)
         device.siggen_waveform = clean_waveform
         device.siggen_counter = 0
@@ -292,10 +296,13 @@ class Devices:
         for device in self.devices_list:
             if device.device_kind == self.D_TYPE:
                 device.dtype_memory = random.choice([self.LOW, self.HIGH])
-            
+
             elif device.device_kind == self.RC:
-                #device.rc_state = self.HIGH
-                self.add_output(device.device_id, output_id=None,signal=self.HIGH)
+
+                self.add_output(
+                    device.device_id,
+                    output_id=None,
+                    signal=self.HIGH)
 
             elif device.device_kind == self.CLOCK:
                 clock_signal = random.choice([self.LOW, self.HIGH])
@@ -374,7 +381,7 @@ class Devices:
             else:
                 self.make_d_type(device_id)
                 error_type = self.NO_ERROR
-        
+
         elif device_kind == self.RC:
             if device_property is None:
                 error_type = self.NO_QUALIFIER
