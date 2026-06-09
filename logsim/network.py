@@ -355,8 +355,8 @@ class Network:
         for device_id in rc_devices:
             device = self.devices.get_device(device_id)
             N = device.rc_n
-            if cycle_num >= N:
-                device.outputs[None] = self.devices.FALLING
+            if cycle_num > N:
+                device.outputs[None] = self.devices.LOW
         return True #this is probably wrong
 
     def update_clocks(self):
@@ -459,37 +459,46 @@ class Network:
 
             for device_id in switch_devices:  # execute switch devices
                 if not self.execute_switch(device_id):
+                    print("a")
                     return False
             # Execute D-type devices before clocks to catch the rising edge of
             # the clock
             for device_id in d_type_devices:  # execute DTYPE devices
                 if not self.execute_d_type(device_id):
+                    print("b")
                     return False
             for device_id in clock_devices:  # complete clock executions
                 if not self.execute_clock(device_id):
+                    print("c")
                     return False
             for device_id in and_devices:  # execute AND gate devices
                 if not self.execute_gate(device_id, self.devices.HIGH,
                                          self.devices.HIGH):
+                    print("d")
                     return False
             for device_id in or_devices:  # execute OR gate devices
                 if not self.execute_gate(device_id, self.devices.LOW,
                                          self.devices.LOW):
+                    print("e")
                     return False
             for device_id in nand_devices:  # execute NAND gate devices
                 if not self.execute_gate(device_id, self.devices.HIGH,
                                          self.devices.LOW):
+                    print("f")
                     return False
             for device_id in nor_devices:  # execute NOR gate devices
                 if not self.execute_gate(device_id, self.devices.LOW,
                                          self.devices.HIGH):
+                    print("g")
                     return False
             for device_id in xor_devices:  # execute XOR devices
                 if not self.execute_gate(device_id, None, None):
+                    print("h")
                     return False
             for device_id in not_devices:  # execute NOT devices
                 if not self.execute_gate(device_id, self.devices.HIGH,
                                          self.devices.LOW):
+                    print("i")
                     return False
             for device_id in rc_devices: # execute RC devices
                 if not self.execute_rc(cycle_num):
