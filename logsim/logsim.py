@@ -64,6 +64,7 @@ def main(arg_list):
             scanner = Scanner(path, names)
             parser = Parser(names, devices, network, monitors, scanner)
             if parser.parse_network():
+                print("passed parser")
                 # Initialise an instance of the userint.UserInterface() class
                 userint = UserInterface(names, devices, network, monitors)
                 userint.command_interface()

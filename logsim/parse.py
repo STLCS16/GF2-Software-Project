@@ -151,6 +151,12 @@ class Parser:
                 except (ParseSyntaxError, ParseSemanticError):
                     pass
                     # self.synchronise()
+            #check that all inputs are connected
+            for device_id in self.devices.find_devices():
+                device = self.devices.get_device(device_id)
+                if None in device.inputs.values():
+                    self.error(True, "Not all inputs are connected, please connect all inputs.", True)
+                    raise ParseSemanticError()
             # signals
             self.get_next_symbol()
             if self.symbol.type != self.scanner.COLON:

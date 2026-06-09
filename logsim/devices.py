@@ -43,6 +43,7 @@ class Device:
         self.rc_state = None
         self.siggen_waveform = None
         self.siggen_counter = None
+        self.no_of_inputs = 0
 
 
 class Devices:
@@ -245,6 +246,7 @@ class Devices:
         """Make logic gates with the specified number of inputs."""
         self.add_device(device_id, device_kind)
         self.add_output(device_id, output_id=None)
+        self.get_device(device_id).no_of_inputs = no_of_inputs
 
         for input_number in range(1, no_of_inputs + 1):
             input_name = "".join(["I", str(input_number)])
@@ -254,6 +256,7 @@ class Devices:
     def make_d_type(self, device_id):
         """Make a D-type device."""
         self.add_device(device_id, self.D_TYPE)
+        self.get_device(device_id).no_of_inputs = 4
         for input_id in self.dtype_input_ids:
             self.add_input(device_id, input_id)
         for output_id in self.dtype_output_ids:
