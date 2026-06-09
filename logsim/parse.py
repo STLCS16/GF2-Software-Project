@@ -96,97 +96,123 @@ class Parser:
         """Parse the circuit definition file."""
         try:
             self.get_next_symbol()
-            # device
+
             if self.symbol.id != self.DEVICES_ID:
-                self.error(False, "Expected 'DEVICES' header.", False)
-                raise ParseSyntaxError()
-            self.get_next_symbol()
-
-            if self.symbol.type != self.scanner.COLON:
-                self.error(False, "Expected ':' at the end of line.", True)
-                raise ParseSyntaxError()
-            self.get_next_symbol()
-
-            found_connections_header = True
-            while self.symbol.id != self.CONNECTIONS_ID:
-                if self.symbol.id == self.SIGNALS_ID:
-                    self.error(False, "Missing 'CONNECTIONS' header.", False)
-                    found_connections_header = False
-                    return False
-                if self.symbol.type == self.scanner.EOF:
-                    self.error(
-                        False,
-                        "Unexpected end of file while looking for"
-                        " 'CONNECTIONS'.",
-                        False,
-                    )
-                    return False
-                try:
-                    self.assignment()
-                except MissingConnectionsHeader:
-                    self.error(False, "Expected assignment not connection. Missing 'CONNECTIONS' header.", True)
-                    found_connections_header = False
-                    return
-                except (ParseSyntaxError, ParseSemanticError):
-                    pass
-                    # self.synchronise()
-            if found_connections_header:
+                if self.symbol.id == self.CONNECTIONS_ID:
+                    self.error(False, "Sections out of order. Found 'CONNECTIONS' before 'DEVICES'.", False)
+                elif self.symbol.id == self.SIGNALS_ID:
+                    self.error(False, "Sections out of order. Found 'SIGNALS' before 'DEVICES'.", False)
+                else:
+                    self.error(False, "Expected 'DEVICES' header.", False)
+                
+                while (self.symbol.id not in [self.DEVICES_ID, self.CONNECTIONS_ID, self.SIGNALS_ID] and 
+                       self.symbol.type not in [self.scanner.END, self.scanner.EOF]):
+                    self.get_next_symbol()
+            
+            if self.symbol.id == self.DEVICES_ID:
                 self.get_next_symbol()
-                # connections
                 if self.symbol.type != self.scanner.COLON:
                     self.error(False, "Expected ':' at the end of line.", True)
-                    raise ParseSyntaxError()
-                self.get_next_symbol()
+                else:
+                    self.get_next_symbol()
 
-            while self.symbol.id != self.SIGNALS_ID:
-                if self.symbol.type == self.scanner.EOF:
-                    self.error(
-                        False,
-                        "Unexpected end of file while looking for 'SIGNALS'.",
-                        False,
-                    )
-                    return False
-                try:
-                    self.connection()
-                except (ParseSyntaxError, ParseSemanticError):
-                    pass
-                    # self.synchronise()
-            #check that all inputs are connected
+                device_count = 0 
+                while self.symbol.id != self.CONNECTIONS_ID and self.symbol.type not in [self.scanner.END, self.scanner.EOF]:
+                    if self.symbol.id == self.SIGNALS_ID:
+                        break  
+                    if self.symbol.id == self.DEVICES_ID:
+                        self.error(False, "Duplicate 'DEVICES' header detected.", False)
+                        self.get_next_symbol()
+                        continue
+                    try:
+                        self.assignment()
+                        device_count += 1
+                    except (ParseSyntaxError, ParseSemanticError):
+                        self.get_next_symbol()
+
+                if device_count == 0:
+                    self.error(False, "DEVICES section cannot be empty. Expected at least one device.", False)
+
+            if self.symbol.id != self.CONNECTIONS_ID:
+                if self.symbol.id == self.SIGNALS_ID:
+                    self.error(False, "Sections out of order. Found 'SIGNALS' before 'CONNECTIONS'.", False)
+                elif self.symbol.id == self.DEVICES_ID:
+                    self.error(False, "Sections out of order. Found 'DEVICES' out of sequence.", False)
+                else:
+                    self.error(False, "Expected 'CONNECTIONS' header.", False)
+
+                while (self.symbol.id not in [self.CONNECTIONS_ID, self.SIGNALS_ID] and 
+                       self.symbol.type not in [self.scanner.END, self.scanner.EOF]):
+                    self.get_next_symbol()
+
+            if self.symbol.id == self.CONNECTIONS_ID:
+                self.get_next_symbol()
+                if self.symbol.type != self.scanner.COLON:
+                    self.error(False, "Expected ':' at the end of line.", True)
+                else:
+                    self.get_next_symbol()
+
+                connection_count = 0
+                while self.symbol.id != self.SIGNALS_ID and self.symbol.type not in [self.scanner.END, self.scanner.EOF]:
+                    if self.symbol.id in [self.DEVICES_ID, self.CONNECTIONS_ID]:
+                        self.error(False, "Misplaced section header found inside CONNECTIONS section.", False)
+                        self.get_next_symbol()
+                        continue
+                    try:
+                        self.connection()
+                        connection_count += 1
+                    except (ParseSyntaxError, ParseSemanticError):
+                        self.get_next_symbol()
+
+                if connection_count == 0:
+                    self.error(False, "CONNECTIONS section cannot be empty. Expected at least one connection.", False)
+
             for device_id in self.devices.find_devices():
                 device = self.devices.get_device(device_id)
                 if None in device.inputs.values():
                     self.error(True, "Not all inputs are connected, please connect all inputs.", True)
-                    raise ParseSemanticError()
-            # signals
-            self.get_next_symbol()
-            if self.symbol.type != self.scanner.COLON:
-                self.error(False, "Expected ':' at the end of line.", True)
-                raise ParseSyntaxError()
-            self.get_next_symbol()
 
-            try:
-                self.signals()
-            except (ParseSyntaxError, ParseSemanticError):
-                pass
-            # ending
+            if self.symbol.id != self.SIGNALS_ID:
+                if self.symbol.id in [self.DEVICES_ID, self.CONNECTIONS_ID]:
+                    self.error(False, "Sections out of order. 'SIGNALS' header is missing or displaced.", False)
+                else:
+                    self.error(False, "Expected 'SIGNALS' header.", False)
+
+                while self.symbol.id != self.SIGNALS_ID and self.symbol.type not in [self.scanner.END, self.scanner.EOF]:
+                    self.get_next_symbol()
+
+            if self.symbol.id == self.SIGNALS_ID:
+                self.get_next_symbol()
+                if self.symbol.type != self.scanner.COLON:
+                    self.error(False, "Expected ':' at the end of line.", True)
+                else:
+                    self.get_next_symbol()
+
+                if self.symbol.type == self.scanner.END:
+                    self.error(False, "SIGNALS section cannot be empty. Expected at least one monitored signal.", False)
+
+                try:
+                    self.signals()
+                except (ParseSyntaxError, ParseSemanticError):
+                    while self.symbol.type not in [self.scanner.END, self.scanner.EOF]:
+                        self.get_next_symbol()
+
             if self.symbol.type != self.scanner.END:
                 self.error(False, "Expected 'END' header.", False)
-                return False
-            self.get_next_symbol()
+                while self.symbol.type not in [self.scanner.END, self.scanner.EOF]:
+                    self.get_next_symbol()
+
+            if self.symbol.type == self.scanner.END:
+                self.get_next_symbol()
 
             if self.symbol.type != self.scanner.EOF:
-                self.error(
-                    False,
-                    "Expected no more text after 'END'. Expected end of file.",
-                    False,
-                )
+                self.error(False, "Expected no more text after 'END'. Expected end of file.", False)
                 return False
+
             return self.error_count == 0
+
         except (ParseSyntaxError, ParseSemanticError):
-            print(
-                "Parser execution halted prematurely due to"
-                " catastrophic structural flaws."
-            )
+            print("Parser execution halted prematurely due to catastrophic structural flaws.")
             return False
 
     def name(self):
