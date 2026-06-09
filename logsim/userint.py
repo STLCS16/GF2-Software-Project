@@ -253,7 +253,6 @@ class UserInterface:
             if self.network.execute_network(cycle_num): #added parameter cycles
                 self.monitors.record_signals()
             else:
-                print("checkpoint 0")
                 print("Error! Network oscillating.")
                 return False
         self.monitors.display_signals()

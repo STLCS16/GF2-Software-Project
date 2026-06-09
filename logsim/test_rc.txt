@@ -1,5 +1,5 @@
 DEVICES:
-RC1 = RC(3);
+RC1 = RC(5);
 G1 = NOT;
 G2 = NOT;
 
@@ -9,5 +9,7 @@ G1 -> G2.I1;
 
 SIGNALS:
 G2;
+RC1;
+G1;
 
 END
