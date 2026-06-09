@@ -506,7 +506,7 @@ class Network:
 
             for device_id in siggen_devices:
                 if not self.execute_siggen(device_id): # complete clock executions
-                    print("checkpoint 1")
+                    print("k")
                     return False
 
                 
