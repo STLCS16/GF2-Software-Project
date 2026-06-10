@@ -10,18 +10,6 @@ msgstr ""
 msgid "Logic simulator canvas"
 msgstr "逻辑模拟器画布"
 
-msgid "Mouse button pressed at: %s, %s"
-msgstr "鼠标按键按下位置: %s, %s"
-
-msgid "Mouse button released at: %s, %s"
-msgstr "鼠标按键释放位置: %s, %s"
-
-msgid "Mouse left canvas at: %s, %s"
-msgstr "鼠标离开画布位置: %s, %s"
-
-msgid "Mouse dragged to: %s, %s. Pan is now: %s, %s"
-msgstr "鼠标拖动至: %s, %s。当前平移为: %s, %s"
-
 msgid "Negative mouse wheel rotation. Zoom is now: %s"
 msgstr "鼠标滚轮向下旋转。当前缩放为: %s"
 
@@ -29,7 +17,7 @@ msgid "Positive mouse wheel rotation. Zoom is now: %s"
 msgstr "鼠标滚轮向上旋转。当前缩放为: %s"
 
 msgid "&Language"
-msgstr "语言"
+msgstr "语言(&L)"
 
 msgid "&About"
 msgstr "关于(&A)"
@@ -63,6 +51,12 @@ msgstr "逻辑模拟器由第 14 组设计\n使用的定义文件: %s"
 
 msgid "About Logsim"
 msgstr "关于 Logsim"
+
+msgid "Language changed. Please restart the application to apply changes."
+msgstr "语言已更改。请重新启动应用程序以应用更改。"
+
+msgid "Restart Required"
+msgstr "需要重启"
 
 msgid "Simulation stopped by user."
 msgstr "用户已停止模拟。"
