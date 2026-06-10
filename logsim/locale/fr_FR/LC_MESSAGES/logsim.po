@@ -43,8 +43,8 @@ msgstr "Tracé 3D"
 msgid "2D Trace"
 msgstr "Tracé 2D"
 
-# msgid "Zap Monitor"
-# msgstr "Effacer le moniteur"
+msgid "Zap Monitor"
+msgstr "Effacer le moniteur"
 
 msgid "Add Monitor"
 msgstr "Ajouter un moniteur"
@@ -174,4 +174,10 @@ msgstr "Moniteur ajouté sur %s."
 
 msgid "Removed monitor from %s."
 msgstr "Moniteur supprimé de %s."
+
+msgid "Error: enter a signal name to monitor."
+msgstr "Erreur : entrez un nom de signal à surveiller."
+
+msgid "Error: enter a signal name to remove."
+msgstr "Erreur : entrez un nom de signal à supprimer."
 

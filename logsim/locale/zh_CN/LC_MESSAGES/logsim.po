@@ -43,8 +43,8 @@ msgstr "3D 追踪"
 msgid "2D Trace"
 msgstr "2D 追踪"
 
-# msgid "Zap Monitor"
-# msgstr "清除监控器"
+msgid "Zap Monitor"
+msgstr "清除监控器"
 
 msgid "Add Monitor"
 msgstr "添加监控器"
@@ -174,3 +174,11 @@ msgstr "已在 %s 上添加监视器。"
 
 msgid "Removed monitor from %s."
 msgstr "已从 %s 移除监视器。"
+
+msgid "Error: enter a signal name to monitor."
+msgstr "错误: 请输入要监视的信号名称。"
+
+msgid "Error: enter a signal name to remove."
+msgstr "错误: 请输入要移除的信号名称。"
+
+
