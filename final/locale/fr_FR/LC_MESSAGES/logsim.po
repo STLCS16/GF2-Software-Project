@@ -1,0 +1,183 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Logsim 1.0\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Logic simulator canvas"
+msgstr "Canevas du simulateur logique"
+
+msgid "Negative mouse wheel rotation. Zoom is now: %s"
+msgstr "Rotation négative de la molette de la souris. Le zoom est maintenant : %s"
+
+msgid "Positive mouse wheel rotation. Zoom is now: %s"
+msgstr "Rotation positive de la molette de la souris. Le zoom est maintenant : %s"
+
+msgid "&Language"
+msgstr "&Langue"
+
+msgid "&About"
+msgstr "À &propos"
+
+msgid "&Exit"
+msgstr "&Quitter"
+
+msgid "&File"
+msgstr "&Fichier"
+
+msgid "Run"
+msgstr "Exécuter"
+
+msgid "Continue"
+msgstr "Continuer"
+
+msgid "Stop"
+msgstr "Arrêter"
+
+msgid "3D Trace"
+msgstr "Tracé 3D"
+
+msgid "2D Trace"
+msgstr "Tracé 2D"
+
+msgid "Zap Monitor"
+msgstr "Effacer le moniteur"
+
+msgid "Add Monitor"
+msgstr "Ajouter un moniteur"
+
+msgid "Ready. Type h for help"
+msgstr "Prêt. Tapez h pour obtenir de l'aide"
+
+msgid "Logic Simulator designed by group 14\nDefinition file used: %s"
+msgstr "Simulateur logique conçu par le groupe 14\nFichier de définition utilisé : %s"
+
+msgid "About Logsim"
+msgstr "À propos de Logsim"
+
+msgid "Language changed. Please restart the application to apply changes."
+msgstr "Langue modifiée. Veuillez redémarrer l'application pour appliquer les modifications."
+
+msgid "Restart Required"
+msgstr "Redémarrage requis"
+
+msgid "Simulation stopped by user."
+msgstr "Simulation arrêtée par l'utilisateur."
+
+msgid "Simulation stopped."
+msgstr "Simulation arrêtée."
+
+msgid "Switched to 3D trace view."
+msgstr "Passé à la vue de tracé 3D."
+
+msgid "Switched to 2D trace view."
+msgstr "Passé à la vue de tracé 2D."
+
+msgid "Switch values:\n"
+msgstr "Valeurs des commutateurs :\n"
+
+msgid "Error: no command entered."
+msgstr "Erreur : aucune commande saisie."
+
+msgid "The run button run simulation for 20 cycles.\nThe continue button runs a further 10 cycles.\nCommand list:\nRun for N cycles: r N\nContinue for N cycles: c N\nSet the value of switch N: s SWN 1 or s SWN 0\nAdd a monitor on Gate N: m GN\nRemove a monitor on Gate N: z GN\nPress the stop button to quit the simulation\n"
+msgstr "Le bouton Exécuter lance la simulation pour 20 cycles.\nLe bouton Continuer l'exécute pour 10 cycles supplémentaires.\nListe des commandes :\nExécuter pour N cycles : r N\nContinuer pour N cycles : c N\nRégler la valeur du commutateur N : s SWN 1 ou s SWN 0\nAjouter un moniteur sur la porte N : m GN\nSupprimer un moniteur sur la porte N : z GN\nAppuyez sur le bouton Arrêter pour quitter la simulation\n"
+
+msgid "Error: unknown command '%s'."
+msgstr "Erreur : commande inconnue '%s'."
+
+msgid "Error: usage is s X N, for example s SW1 1."
+msgstr "Erreur : l'utilisation est s X N, par exemple s SW1 1."
+
+msgid "Error: switch value must be 0 or 1."
+msgstr "Erreur : la valeur du commutateur doit être 0 ou 1."
+
+msgid "Switch %s set to %s."
+msgstr "Commutateur %s réglé sur %s."
+
+msgid "Error: usage is m X, for example m G1."
+msgstr "Erreur : l'utilisation est m X, par exemple m G1."
+
+msgid "Monitor on %s already exists."
+msgstr "Le moniteur sur %s existe déjà."
+
+msgid "%s is not an output."
+msgstr "%s n'est pas une sortie."
+
+msgid "%s is not defined."
+msgstr "%s n'est pas défini."
+
+msgid "Could not add monitor on %s."
+msgstr "Impossible d'ajouter un moniteur sur %s."
+
+msgid "Error: usage is z X, for example z G1."
+msgstr "Erreur : l'utilisation est z X, par exemple z G1."
+
+msgid "Error: device '%s' is not defined."
+msgstr "Erreur : l'appareil '%s' n'est pas défini."
+
+msgid "Error: output '%s' is not defined."
+msgstr "Erreur : la sortie '%s' n'est pas définie."
+
+msgid "Error: device '%s' is not in the network."
+msgstr "Erreur : l'appareil '%s' n'est pas dans le réseau."
+
+msgid "Error: signal '%s' is not an output."
+msgstr "Erreur : le signal '%s' n'est pas une sortie."
+
+msgid "Error: no monitor exists on signal '%s'."
+msgstr "Erreur : aucun moniteur n'existe sur le signal '%s'."
+
+msgid "Monitor removed: %s"
+msgstr "Moniteur supprimé : %s"
+
+msgid "Error: usage is %s."
+msgstr "Erreur : l'utilisation est %s."
+
+msgid "Error: number of cycles must be an integer."
+msgstr "Erreur : le nombre de cycles doit être un entier."
+
+msgid "Error: number of cycles must be positive."
+msgstr "Erreur : le nombre de cycles doit être positif."
+
+msgid "Error: simulation is already running."
+msgstr "Erreur : la simulation est déjà en cours d'exécution."
+
+msgid "Running for %s cycle(s)."
+msgstr "Exécution pour %s cycle(s)."
+
+msgid "Simulation finished."
+msgstr "Simulation terminée."
+
+msgid "Simulation finished after %s cycle(s)."
+msgstr "Simulation terminée après %s cycle(s)."
+
+msgid "Error: simulation failed to reach steady state."
+msgstr "Erreur : la simulation n'a pas atteint l'état d'équilibre."
+
+msgid "Simulation error."
+msgstr "Erreur de simulation."
+
+msgid "Cycle %s"
+msgstr "Cycle %s"
+
+msgid "Error: unknown switch %s."
+msgstr "Erreur : commutateur inconnu %s."
+
+msgid "Set switch %s to %s."
+msgstr "Commutateur %s réglé sur %s."
+
+msgid "Added monitor on %s."
+msgstr "Moniteur ajouté sur %s."
+
+msgid "Removed monitor from %s."
+msgstr "Moniteur supprimé de %s."
+
+msgid "Error: enter a signal name to monitor."
+msgstr "Erreur : entrez un nom de signal à surveiller."
+
+msgid "Error: enter a signal name to remove."
+msgstr "Erreur : entrez un nom de signal à supprimer."
+

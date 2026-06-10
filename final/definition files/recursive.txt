@@ -1,0 +1,11 @@
+DEVICES:
+G = XOR;
+
+CONNECTIONS:
+G -> G.I1;
+G -> G.I2;
+
+SIGNALS:
+G;
+
+END

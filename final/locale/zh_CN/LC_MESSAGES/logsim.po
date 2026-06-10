@@ -1,0 +1,184 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Logsim 1.0\n"
+"Language-Team: Chinese\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Logic simulator canvas"
+msgstr "逻辑模拟器画布"
+
+msgid "Negative mouse wheel rotation. Zoom is now: %s"
+msgstr "鼠标滚轮向下旋转。当前缩放为: %s"
+
+msgid "Positive mouse wheel rotation. Zoom is now: %s"
+msgstr "鼠标滚轮向上旋转。当前缩放为: %s"
+
+msgid "&Language"
+msgstr "语言(&L)"
+
+msgid "&About"
+msgstr "关于(&A)"
+
+msgid "&Exit"
+msgstr "退出(&E)"
+
+msgid "&File"
+msgstr "文件(&F)"
+
+msgid "Run"
+msgstr "运行"
+
+msgid "Continue"
+msgstr "继续"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "3D Trace"
+msgstr "3D 追踪"
+
+msgid "2D Trace"
+msgstr "2D 追踪"
+
+msgid "Zap Monitor"
+msgstr "清除监控器"
+
+msgid "Add Monitor"
+msgstr "添加监控器"
+
+msgid "Ready. Type h for help"
+msgstr "就绪。输入 h 获取帮助"
+
+msgid "Logic Simulator designed by group 14\nDefinition file used: %s"
+msgstr "逻辑模拟器由第 14 组设计\n使用的定义文件: %s"
+
+msgid "About Logsim"
+msgstr "关于 Logsim"
+
+msgid "Language changed. Please restart the application to apply changes."
+msgstr "语言已更改。请重新启动应用程序以应用更改。"
+
+msgid "Restart Required"
+msgstr "需要重启"
+
+msgid "Simulation stopped by user."
+msgstr "用户已停止模拟。"
+
+msgid "Simulation stopped."
+msgstr "模拟已停止。"
+
+msgid "Switched to 3D trace view."
+msgstr "已切换到 3D 追踪视图。"
+
+msgid "Switched to 2D trace view."
+msgstr "已切换到 2D 追踪视图。"
+
+msgid "Switch values:\n"
+msgstr "开关值:\n"
+
+msgid "Error: no command entered."
+msgstr "错误: 未输入命令。"
+
+msgid "The run button run simulation for 20 cycles.\nThe continue button runs a further 10 cycles.\nCommand list:\nRun for N cycles: r N\nContinue for N cycles: c N\nSet the value of switch N: s SWN 1 or s SWN 0\nAdd a monitor on Gate N: m GN\nRemove a monitor on Gate N: z GN\nPress the stop button to quit the simulation\n"
+msgstr "运行按钮将模拟运行 20 个周期。\n继续按钮将进一步运行 10 个周期。\n命令列表:\n运行 N 个周期: r N\n继续运行 N 个周期: c N\n设置开关 N 的值: s SWN 1 或 s SWN 0\n在门 N 上添加监视器: m GN\n移除门 N 上的监视器: z GN\n按停止按钮退出模拟\n"
+
+msgid "Error: unknown command '%s'."
+msgstr "错误: 未知命令 '%s'。"
+
+msgid "Error: usage is s X N, for example s SW1 1."
+msgstr "错误: 用法为 s X N，例如 s SW1 1。"
+
+msgid "Error: switch value must be 0 or 1."
+msgstr "错误: 开关值必须为 0 或 1。"
+
+msgid "Switch %s set to %s."
+msgstr "开关 %s 已设置为 %s。"
+
+msgid "Error: usage is m X, for example m G1."
+msgstr "错误: 用法为 m X，例如 m G1。"
+
+msgid "Monitor on %s already exists."
+msgstr "对 %s 的监视器已存在。"
+
+msgid "%s is not an output."
+msgstr "%s 不是一个输出端。"
+
+msgid "%s is not defined."
+msgstr "%s 未定义。"
+
+msgid "Could not add monitor on %s."
+msgstr "无法在 %s 上添加监视器。"
+
+msgid "Error: usage is z X, for example z G1."
+msgstr "错误: 用法为 z X，例如 z G1。"
+
+msgid "Error: device '%s' is not defined."
+msgstr "错误: 装置 '%s' 未定义。"
+
+msgid "Error: output '%s' is not defined."
+msgstr "错误: 输出端 '%s' 未定义。"
+
+msgid "Error: device '%s' is not in the network."
+msgstr "错误: 装置 '%s' 不在网络中。"
+
+msgid "Error: signal '%s' is not an output."
+msgstr "错误: 信号 '%s' 不是一个输出端。"
+
+msgid "Error: no monitor exists on signal '%s'."
+msgstr "错误: 信号 '%s' 上不存在监视器。"
+
+msgid "Monitor removed: %s"
+msgstr "监视器已移除: %s"
+
+msgid "Error: usage is %s."
+msgstr "错误: 用法为 %s。"
+
+msgid "Error: number of cycles must be an integer."
+msgstr "错误: 周期数必须为整数。"
+
+msgid "Error: number of cycles must be positive."
+msgstr "错误: 周期数必须为正数。"
+
+msgid "Error: simulation is already running."
+msgstr "错误: 模拟已经在运行。"
+
+msgid "Running for %s cycle(s)."
+msgstr "运行 %s 个周期。"
+
+msgid "Simulation finished."
+msgstr "模拟完成。"
+
+msgid "Simulation finished after %s cycle(s)."
+msgstr "模拟在 %s 个周期后完成。"
+
+msgid "Error: simulation failed to reach steady state."
+msgstr "错误: 模拟未能达到稳定状态。"
+
+msgid "Simulation error."
+msgstr "模拟错误。"
+
+msgid "Cycle %s"
+msgstr "周期 %s"
+
+msgid "Error: unknown switch %s."
+msgstr "错误: 未知开关 %s。"
+
+msgid "Set switch %s to %s."
+msgstr "将开关 %s 设置为 %s。"
+
+msgid "Added monitor on %s."
+msgstr "已在 %s 上添加监视器。"
+
+msgid "Removed monitor from %s."
+msgstr "已从 %s 移除监视器。"
+
+msgid "Error: enter a signal name to monitor."
+msgstr "错误: 请输入要监视的信号名称。"
+
+msgid "Error: enter a signal name to remove."
+msgstr "错误: 请输入要移除的信号名称。"
+
+

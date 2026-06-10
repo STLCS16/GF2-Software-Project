@@ -1,0 +1,8 @@
+DEVICES:
+  G1 = NAND(2);
+CONNECTIONS:
+  G1 -> G1.I1;
+  G1 -> G1.I2;
+SIGNALS:
+  G1;
+END

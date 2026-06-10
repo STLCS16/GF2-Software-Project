@@ -1,0 +1,29 @@
+DEVICES:
+C1 = CLOCK(1);
+C2 = CLOCK(2);
+SW = SWITCH(0);
+G1 = XOR;
+G2 = XOR;
+G3 = AND(2);
+G4 = AND(2);
+G5 = OR(2);
+
+CONNECTIONS:
+C1 -> G1.I1;
+C2 -> G1.I2;
+SW -> G2.I2;
+SW -> G3.I1;
+G1 -> G2.I1;
+G1 -> G3.I2;
+C1 -> G4.I1;
+C2 -> G4.I2;
+G3 -> G5.I1;
+G4 -> G5.I2;
+
+SIGNALS:
+C1;
+C2;
+G2;
+G5;
+
+END
