@@ -336,13 +336,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.last_mouse_x = event.GetX()
             self.last_mouse_y = event.GetY()
             # Correctly formatted placeholder translation
-            text = _("Mouse button pressed at: %s, %s") % (event.GetX(), event.GetY())
-
-        if event.ButtonUp():
-            text = _("Mouse button released at: %s, %s") % (event.GetX(), event.GetY())
-
-        if event.Leaving():
-            text = _("Mouse left canvas at: %s, %s") % (event.GetX(), event.GetY())
 
         if event.Dragging():
             self.pan_x += event.GetX() - self.last_mouse_x
@@ -350,7 +343,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.last_mouse_x = event.GetX()
             self.last_mouse_y = event.GetY()
             self.init = False
-            text = _("Mouse dragged to: %s, %s. Pan is now: %s, %s") % (event.GetX(), event.GetY(), self.pan_x, self.pan_y)
 
         if event.GetWheelRotation() < 0:
             self.zoom *= (1.0 + (event.GetWheelRotation() / (20 * event.GetWheelDelta())))
@@ -498,21 +490,47 @@ class Gui(wx.Frame):
         self.continue_button = wx.Button(terminal_panel, wx.ID_ANY, _("Continue"))
         self.stop_button = wx.Button(terminal_panel, wx.ID_ANY, _("Stop"))
         self.trace_mode_button = wx.Button(terminal_panel, wx.ID_ANY, _("3D Trace"))
+        self.add_monitor_button = wx.Button(
+            terminal_panel, wx.ID_ANY, "Add Monitor"
+        )
+        self.zap_monitor_button = wx.Button(
+            terminal_panel, wx.ID_ANY, "Zap Monitor"
+        )
 
         toolbar_sizer.Add(self.run_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.continue_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.stop_button, 0, wx.RIGHT, 5)
+        toolbar_sizer.Add(self.add_monitor_button, 0, wx.RIGHT, 5)
+        toolbar_sizer.Add(self.zap_monitor_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.trace_mode_button, 0, wx.RIGHT, 5)
 
         self.output_box = wx.TextCtrl(terminal_panel, wx.ID_ANY, "", style=wx.TE_MULTILINE | wx.TE_READONLY)
         self.switch_box = wx.TextCtrl(terminal_panel, wx.ID_ANY, "", style=wx.TE_MULTILINE | wx.TE_READONLY)
+        self.switch_button_panel = wx.ScrolledWindow(
+            terminal_panel,
+            wx.ID_ANY,
+            style=wx.VSCROLL
+        )
+        self.switch_button_panel.SetScrollRate(0, 10)
+
+        self.switch_button_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.switch_button_panel.SetSizer(self.switch_button_sizer)
+
+        self.switch_buttons = {}
+
+        self.switch_buttons = {}
         self.text_box = wx.TextCtrl(terminal_panel, wx.ID_ANY, "", style=wx.TE_PROCESS_ENTER)
 
         terminal_sizer.Add(toolbar_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
         info_output_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        info_output_sizer.Add(self.output_box, 2, wx.EXPAND)
-        info_output_sizer.Add(self.switch_box, 1, wx.EXPAND | wx.RIGHT, 5)
+
+        switch_area_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        switch_area_sizer.Add(self.switch_box, 1, wx.EXPAND | wx.RIGHT, 5)
+        switch_area_sizer.Add(self.switch_button_panel, 0, wx.EXPAND)
+
+        info_output_sizer.Add(self.output_box, 2, wx.EXPAND | wx.RIGHT, 5)
+        info_output_sizer.Add(switch_area_sizer, 1, wx.EXPAND)
 
         terminal_sizer.Add(info_output_sizer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
         terminal_sizer.Add(self.text_box, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
@@ -526,6 +544,12 @@ class Gui(wx.Frame):
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
         self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
         self.stop_button.Bind(wx.EVT_BUTTON, self.on_stop_button)
+        self.add_monitor_button.Bind(
+            wx.EVT_BUTTON, self.on_add_monitor_button
+        )
+        self.zap_monitor_button.Bind(
+            wx.EVT_BUTTON, self.on_zap_monitor_button
+        )
         self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
         self.trace_mode_button.Bind(wx.EVT_BUTTON, self.on_trace_mode_button)
         self.h_scroll.Bind(wx.EVT_SLIDER, self.on_horizontal_scroll)
@@ -537,6 +561,8 @@ class Gui(wx.Frame):
         
         self.write_output(_("Ready. Type h for help"))
         self.update_switch_box()
+        self.build_switch_buttons()
+        self.update_switch_buttons()
 
     def on_menu(self, event):
         """Handle the event when the user selects a menu item."""
@@ -567,8 +593,12 @@ class Gui(wx.Frame):
 
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
-        command = self.text_box.GetValue().strip()
-        if not command:
+        text = self.text_box.GetValue().strip()
+        if text:
+            command = text
+        elif text.isdigit():
+            command = "r " + text
+        else:
             command = "r 20"
         self.process_command(command)
         self.text_box.Clear()
@@ -591,6 +621,31 @@ class Gui(wx.Frame):
         self.cycles_remaining = 0
         self.write_output(_("Simulation stopped by user."))
         self.canvas.render(_("Simulation stopped."))
+
+    def on_add_monitor_button(self, event):
+        """Add a monitor using the signal name in the text box."""
+        signal_name = self.text_box.GetValue().strip()
+
+        if not signal_name:
+            self.write_output("Error: enter a signal name to monitor.")
+            return
+
+        command = "m " + signal_name
+        self.process_command(command)
+        self.text_box.Clear()
+
+
+    def on_zap_monitor_button(self, event):
+        """Remove a monitor using the signal name in the text box."""
+        signal_name = self.text_box.GetValue().strip()
+
+        if not signal_name:
+            self.write_output("Error: enter a signal name to remove.")
+            return
+
+        command = "z " + signal_name
+        self.process_command(command)
+        self.text_box.Clear()
 
     def on_text_box(self, event):
         """Handle the event when the user enters text in the terminal box."""
@@ -621,6 +676,75 @@ class Gui(wx.Frame):
                 switch_value = device.switch_state
                 switch_text += "%s = %s\n" % (switch_name, switch_value)
         self.switch_box.SetValue(switch_text)
+
+    def build_switch_buttons(self):
+        """Create one toggle button for each switch."""
+        self.switch_button_sizer.Clear(delete_windows=True)
+        self.switch_buttons = {}
+
+        for device_id in self.devices.find_devices():
+            device = self.devices.get_device(device_id)
+
+            if device.device_kind == self.devices.SWITCH:
+                switch_name = self.names.get_name_string(device_id)
+                button = wx.Button(
+                    self.switch_button_panel,
+                    wx.ID_ANY,
+                    "Toggle " + switch_name
+                )
+
+                button.Bind(
+                    wx.EVT_BUTTON,
+                    lambda event, sid=device_id: self.on_switch_toggle_button(
+                        event, sid
+                    )
+                )
+
+                self.switch_button_sizer.Add(
+                    button,
+                    0,
+                    wx.EXPAND | wx.BOTTOM,
+                    3
+                )
+
+                self.switch_buttons[device_id] = button
+
+        self.switch_button_panel.Layout()
+        self.switch_button_panel.FitInside()
+        self.update_switch_buttons()
+
+    def on_switch_toggle_button(self, event, switch_id):
+        """Toggle the value of a switch button."""
+        device = self.devices.get_device(switch_id)
+        switch_name = self.names.get_name_string(switch_id)
+
+        if device.switch_state == 0:
+            new_value = 1
+        else:
+            new_value = 0
+
+        self.devices.set_switch(switch_id, new_value)
+
+        self.write_output(
+            "Set switch " + switch_name + " to " + str(new_value) + "."
+        )
+
+        self.update_switch_box()
+        self.update_switch_buttons()
+        self.canvas.render(
+            "Switch " + switch_name + " set to " + str(new_value) + "."
+        )
+
+    def update_switch_buttons(self):
+        """Refresh switch button labels."""
+        for switch_id, button in self.switch_buttons.items():
+            device = self.devices.get_device(switch_id)
+            switch_name = self.names.get_name_string(switch_id)
+
+            if device.switch_state == 0:
+                button.SetLabel(switch_name + ": 0 → 1")
+            else:
+                button.SetLabel(switch_name + ": 1 → 0")
 
     def update_scrollbars(self):
         """Update scrollbar ranges from monitor count and trace length."""
@@ -693,6 +817,7 @@ class Gui(wx.Frame):
         self.do_set_switch(switch_name, switch_value)
         self.canvas.render(_("Switch %s set to %s.") % (switch_name, switch_value))
         self.update_switch_box()
+        self.update_switch_buttons()
 
     def handle_monitor_command(self, parts):
         if len(parts) != 2:
@@ -821,6 +946,7 @@ class Gui(wx.Frame):
             return
         self.devices.set_switch(switch_id, switch_value)
         self.write_output(_("Set switch %s to %s.") % (switch_name, switch_value))
+        self.update_switch_buttons
 
     def do_add_monitor(self, signal_name):
         device_id, output_id = self.devices.get_signal_ids(signal_name)
