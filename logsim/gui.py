@@ -24,6 +24,7 @@ from parse import Parser
 
 _ = wx.GetTranslation
 
+
 class MyGLCanvas(wxcanvas.GLCanvas):
     """Handle all drawing operations."""
 
@@ -55,7 +56,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Constants for OpenGL materials and lights.
         self.mat_diffuse = [0.0, 0.0, 0.0, 1.0]
-        self.mat_no_specular = [0.0, 0.0, 0.0, 0.0] 
+        self.mat_no_specular = [0.0, 0.0, 0.0, 0.0]
         self.mat_no_shininess = [0.0]
         self.mat_specular = [0.5, 0.5, 0.5, 1.0]
         self.mat_shininess = [50.0]
@@ -101,7 +102,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glLoadIdentity()
         GL.glTranslated(self.pan_x, self.pan_y, 0.0)
         GL.glScaled(self.zoom, self.zoom, self.zoom)
- 
+
     def init_gl_3d(self):
         """Configure OpenGL for the 3D trace view."""
         size = self.GetClientSize()
@@ -127,7 +128,10 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         GL.glMaterialfv(GL.GL_FRONT, GL.GL_SPECULAR, self.mat_specular)
         GL.glMaterialfv(GL.GL_FRONT, GL.GL_SHININESS, self.mat_shininess)
-        GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE, self.mat_diffuse)
+        GL.glMaterialfv(
+            GL.GL_FRONT,
+            GL.GL_AMBIENT_AND_DIFFUSE,
+            self.mat_diffuse)
         GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
 
         GL.glClearColor(0.0, 0.0, 0.0, 0.0)
@@ -179,8 +183,10 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         trace_gap = 60
         trace_height = 25
 
-        for trace_index, (device_id, output_id) in enumerate(self.monitors.monitors_dictionary):
-            signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
+        for trace_index, (device_id, output_id) in enumerate(
+                self.monitors.monitors_dictionary):
+            signal_list = self.monitors.monitors_dictionary[(
+                device_id, output_id)]
             signal_name = self.devices.get_signal_name(device_id, output_id)
 
             low_y = start_y - trace_index * trace_gap
@@ -197,12 +203,18 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 x = start_x + i * step_x
                 x_next = x + step_x
 
-                if signal == self.devices.HIGH: y = high_y
-                elif signal == self.devices.LOW: y = low_y
-                elif signal == self.devices.RISING: y = high_y
-                elif signal == self.devices.FALLING: y = low_y
-                elif signal == self.devices.BLANK: y = low_y
-                else: y = low_y
+                if signal == self.devices.HIGH:
+                    y = high_y
+                elif signal == self.devices.LOW:
+                    y = low_y
+                elif signal == self.devices.RISING:
+                    y = high_y
+                elif signal == self.devices.FALLING:
+                    y = low_y
+                elif signal == self.devices.BLANK:
+                    y = low_y
+                else:
+                    y = low_y
 
                 if previous_y is not None and previous_y != y:
                     GL.glVertex2f(x, previous_y)
@@ -269,19 +281,26 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         GL.glColor3f(1.0, 0.7, 0.5)
 
-        for trace_index, (device_id, output_id) in enumerate(self.monitors.monitors_dictionary):
-            signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
+        for trace_index, (device_id, output_id) in enumerate(
+                self.monitors.monitors_dictionary):
+            signal_list = self.monitors.monitors_dictionary[(
+                device_id, output_id)]
             signal_name = self.devices.get_signal_name(device_id, output_id)
             x_pos = trace_index * signal_spacing - centre_offset
 
             for cycle_index, signal in enumerate(signal_list):
                 z_pos = cycle_index * cycle_spacing
 
-                if signal == self.devices.HIGH: height = high_height
-                elif signal == self.devices.RISING: height = high_height
-                elif signal == self.devices.LOW: height = low_height
-                elif signal == self.devices.FALLING: height = low_height
-                else: continue
+                if signal == self.devices.HIGH:
+                    height = high_height
+                elif signal == self.devices.RISING:
+                    height = high_height
+                elif signal == self.devices.LOW:
+                    height = low_height
+                elif signal == self.devices.FALLING:
+                    height = low_height
+                else:
+                    continue
 
                 self.draw_cuboid(x_pos, z_pos, half_width, half_depth, height)
 
@@ -345,18 +364,22 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.init = False
 
         if event.GetWheelRotation() < 0:
-            self.zoom *= (1.0 + (event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            self.zoom *= (1.0 + (event.GetWheelRotation() /
+                          (20 * event.GetWheelDelta())))
             self.pan_x -= (self.zoom - old_zoom) * ox
             self.pan_y -= (self.zoom - old_zoom) * oy
             self.init = False
-            text = _("Negative mouse wheel rotation. Zoom is now: %s") % self.zoom
+            text = _("Negative mouse wheel rotation. "
+                     "Zoom is now: %s") % self.zoom
 
         if event.GetWheelRotation() > 0:
-            self.zoom /= (1.0 - (event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            self.zoom /= (1.0 - (event.GetWheelRotation() /
+                          (20 * event.GetWheelDelta())))
             self.pan_x -= (self.zoom - old_zoom) * ox
             self.pan_y -= (self.zoom - old_zoom) * oy
             self.init = False
-            text = _("Positive mouse wheel rotation. Zoom is now: %s") % self.zoom
+            text = _("Positive mouse wheel rotation."
+                     " Zoom is now: %s") % self.zoom
 
         if text:
             self.render(text)
@@ -390,11 +413,13 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.init = False
 
         if event.GetWheelRotation() < 0:
-            self.zoom *= (1.0 + (event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            self.zoom *= (1.0 + (event.GetWheelRotation() /
+                          (20 * event.GetWheelDelta())))
             self.init = False
 
         if event.GetWheelRotation() > 0:
-            self.zoom /= (1.0 - (event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            self.zoom /= (1.0 - (event.GetWheelRotation() /
+                          (20 * event.GetWheelDelta())))
             self.init = False
 
         self.Refresh()
@@ -459,10 +484,9 @@ class Gui(wx.Frame):
         fileMenu.Append(wx.ID_ABOUT, _("&About"))
         fileMenu.AppendSubMenu(langMenu, _("&Language"))
         fileMenu.Append(wx.ID_EXIT, _("&Exit"))
-        
+
         menuBar.Append(fileMenu, _("&File"))
         self.SetMenuBar(menuBar)
-
 
         self.canvas = MyGLCanvas(self, devices, monitors)
         canvas_panel = wx.Panel(self)
@@ -470,13 +494,29 @@ class Gui(wx.Frame):
         canvas_row_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.canvas = MyGLCanvas(canvas_panel, devices, monitors)
 
-        self.v_scroll = wx.Slider(canvas_panel, wx.ID_ANY, value=0, minValue=0, maxValue=1000, style=wx.SL_VERTICAL)
-        self.h_scroll = wx.Slider(canvas_panel, wx.ID_ANY, value=0, minValue=0, maxValue=1000, style=wx.SL_HORIZONTAL)
+        self.v_scroll = wx.Slider(
+            canvas_panel,
+            wx.ID_ANY,
+            value=0,
+            minValue=0,
+            maxValue=1000,
+            style=wx.SL_VERTICAL)
+        self.h_scroll = wx.Slider(
+            canvas_panel,
+            wx.ID_ANY,
+            value=0,
+            minValue=0,
+            maxValue=1000,
+            style=wx.SL_HORIZONTAL)
 
         canvas_row_sizer.Add(self.canvas, 1, wx.EXPAND)
         canvas_row_sizer.Add(self.v_scroll, 0, wx.EXPAND | wx.LEFT, 5)
         canvas_outer_sizer.Add(canvas_row_sizer, 1, wx.EXPAND | wx.ALL, 5)
-        canvas_outer_sizer.Add(self.h_scroll, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+        canvas_outer_sizer.Add(
+            self.h_scroll,
+            0,
+            wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
+            5)
         canvas_panel.SetSizer(canvas_outer_sizer)
 
         self.h_scroll.Bind(wx.EVT_SLIDER, self.on_horizontal_scroll)
@@ -487,9 +527,11 @@ class Gui(wx.Frame):
 
         toolbar_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.run_button = wx.Button(terminal_panel, wx.ID_ANY, _("Run"))
-        self.continue_button = wx.Button(terminal_panel, wx.ID_ANY, _("Continue"))
+        self.continue_button = wx.Button(
+            terminal_panel, wx.ID_ANY, _("Continue"))
         self.stop_button = wx.Button(terminal_panel, wx.ID_ANY, _("Stop"))
-        self.trace_mode_button = wx.Button(terminal_panel, wx.ID_ANY, _("3D Trace"))
+        self.trace_mode_button = wx.Button(
+            terminal_panel, wx.ID_ANY, _("3D Trace"))
         self.add_monitor_button = wx.Button(
             terminal_panel, wx.ID_ANY, "Add Monitor"
         )
@@ -504,8 +546,16 @@ class Gui(wx.Frame):
         toolbar_sizer.Add(self.zap_monitor_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.trace_mode_button, 0, wx.RIGHT, 5)
 
-        self.output_box = wx.TextCtrl(terminal_panel, wx.ID_ANY, "", style=wx.TE_MULTILINE | wx.TE_READONLY)
-        self.switch_box = wx.TextCtrl(terminal_panel, wx.ID_ANY, "", style=wx.TE_MULTILINE | wx.TE_READONLY)
+        self.output_box = wx.TextCtrl(
+            terminal_panel,
+            wx.ID_ANY,
+            "",
+            style=wx.TE_MULTILINE | wx.TE_READONLY)
+        self.switch_box = wx.TextCtrl(
+            terminal_panel,
+            wx.ID_ANY,
+            "",
+            style=wx.TE_MULTILINE | wx.TE_READONLY)
         self.switch_button_panel = wx.ScrolledWindow(
             terminal_panel,
             wx.ID_ANY,
@@ -519,7 +569,11 @@ class Gui(wx.Frame):
         self.switch_buttons = {}
 
         self.switch_buttons = {}
-        self.text_box = wx.TextCtrl(terminal_panel, wx.ID_ANY, "", style=wx.TE_PROCESS_ENTER)
+        self.text_box = wx.TextCtrl(
+            terminal_panel,
+            wx.ID_ANY,
+            "",
+            style=wx.TE_PROCESS_ENTER)
 
         terminal_sizer.Add(toolbar_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
@@ -532,8 +586,10 @@ class Gui(wx.Frame):
         info_output_sizer.Add(self.output_box, 2, wx.EXPAND | wx.RIGHT, 5)
         info_output_sizer.Add(switch_area_sizer, 1, wx.EXPAND)
 
-        terminal_sizer.Add(info_output_sizer, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
-        terminal_sizer.Add(self.text_box, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+        terminal_sizer.Add(info_output_sizer, 1, wx.EXPAND |
+                           wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+        terminal_sizer.Add(self.text_box, 0, wx.EXPAND |
+                           wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
         terminal_panel.SetSizer(terminal_sizer)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -558,7 +614,7 @@ class Gui(wx.Frame):
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
         self.Layout()
-        
+
         self.write_output(_("Ready. Type h for help"))
         self.update_switch_box()
         self.build_switch_buttons()
@@ -570,26 +626,29 @@ class Gui(wx.Frame):
         if Id == wx.ID_EXIT:
             self.Close(True)
         elif Id == wx.ID_ABOUT:
-            message = _("Logic Simulator designed by group 14\nDefinition file used: %s") % str(self.path)
-            wx.MessageBox(message, _("About Logsim"), wx.ICON_INFORMATION | wx.OK)
+            message = _(
+                "Logic Simulator designed by group 14\n"
+                "Definition file used: %s") % str(self.path)
+            wx.MessageBox(
+                message,
+                _("About Logsim"),
+                wx.ICON_INFORMATION | wx.OK)
         elif Id == self.ID_LANG_EN.GetId():
             self.change_language("en")
         elif Id == self.ID_LANG_FR.GetId():
             self.change_language("fr")
         elif Id == self.ID_LANG_ZH.GetId():
             self.change_language("zh_CN")
-                
+
     def change_language(self, lang_code):
-        """Save language preference to a file and prompt the user to restart."""
         with open("lang_pref.txt", "w") as f:
             f.write(lang_code)
-        
-        wx.MessageBox(
-            _("Language changed. Please restart the application to apply changes."),
-            _("Restart Required"), 
-            wx.ICON_INFORMATION | wx.OK
-        )
 
+        wx.MessageBox(
+            _("Language changed. "
+              "Please restart the application to apply changes."),
+            _("Restart Required"),
+            wx.ICON_INFORMATION | wx.OK)
 
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
@@ -633,7 +692,6 @@ class Gui(wx.Frame):
         command = "m " + signal_name
         self.process_command(command)
         self.text_box.Clear()
-
 
     def on_zap_monitor_button(self, event):
         """Remove a monitor using the signal name in the text box."""
@@ -768,37 +826,45 @@ class Gui(wx.Frame):
         parts = command.split()
         command_type = parts[0].lower()
 
-        if command_type == "r": self.handle_run_command(parts)
-        elif command_type == "c": self.handle_continue_command(parts)
-        elif command_type == "s": self.handle_switch_command(parts)
-        elif command_type == "m": self.handle_monitor_command(parts)
-        elif command_type == "z": self.handle_zap_command(parts)
-        elif command_type == "q": self.Close(True)
+        if command_type == "r":
+            self.handle_run_command(parts)
+        elif command_type == "c":
+            self.handle_continue_command(parts)
+        elif command_type == "s":
+            self.handle_switch_command(parts)
+        elif command_type == "m":
+            self.handle_monitor_command(parts)
+        elif command_type == "z":
+            self.handle_zap_command(parts)
+        elif command_type == "q":
+            self.Close(True)
         elif command_type == "h":
             self.write_output(
                 _("The run button run simulation for 20 cycles.\n"
-                "The continue button runs a further 10 cycles.\n"
-                "Command list:\n"
-                "Run for N cycles: r N\n"
-                "Continue for N cycles: c N\n"
-                "Set the value of switch N: s SWN 1 or s SWN 0\n"
-                "Add a monitor on Gate N: m GN\n"
-                "Remove a monitor on Gate N: z GN\n"
-                "Press the stop button to quit the simulation\n")
+                  "The continue button runs a further 10 cycles.\n"
+                  "Command list:\n"
+                  "Run for N cycles: r N\n"
+                  "Continue for N cycles: c N\n"
+                  "Set the value of switch N: s SWN 1 or s SWN 0\n"
+                  "Add a monitor on Gate N: m GN\n"
+                  "Remove a monitor on Gate N: z GN\n"
+                  "Press the stop button to quit the simulation\n")
             )
         else:
             self.write_output(_("Error: unknown command '%s'.") % command_type)
 
     def handle_run_command(self, parts):
         cycles = self.get_cycle_argument(parts, "r N")
-        if cycles is None: return
+        if cycles is None:
+            return
         self.start_simulation(cycles, cold_start=True)
         self.update_scrollbars()
         self.canvas.Refresh()
 
     def handle_continue_command(self, parts):
         cycles = self.get_cycle_argument(parts, "c N")
-        if cycles is None: return
+        if cycles is None:
+            return
         self.start_simulation(cycles, cold_start=False)
 
     def handle_switch_command(self, parts):
@@ -806,16 +872,19 @@ class Gui(wx.Frame):
             self.write_output(_("Error: usage is s X N, for example s SW1 1."))
             return
         switch_name = parts[1]
-        try: switch_value = int(parts[2])
+        try:
+            switch_value = int(parts[2])
         except ValueError:
             self.write_output(_("Error: switch value must be 0 or 1."))
             return
         if switch_value not in [0, 1]:
             self.write_output(_("Error: switch value must be 0 or 1."))
             return
-            
+
         self.do_set_switch(switch_name, switch_value)
-        self.canvas.render(_("Switch %s set to %s.") % (switch_name, switch_value))
+        self.canvas.render(
+            _("Switch %s set to %s.") %
+            (switch_name, switch_value))
         self.update_switch_box()
         self.update_switch_buttons()
 
@@ -825,15 +894,22 @@ class Gui(wx.Frame):
             return
         signal_name = parts[1]
         device_id, output_id = self.devices.get_signal_ids(signal_name)
-        if device_id is None: return
+        if device_id is None:
+            return
 
-        error_type = self.monitors.make_monitor(device_id, output_id, self.cycles_completed)
-        if error_type == self.monitors.NO_ERROR: self.do_add_monitor(signal_name)
-        elif error_type == self.monitors.MONITOR_PRESENT: self.write_output(_("Monitor on %s already exists.") % signal_name)
-        elif error_type == self.monitors.NOT_OUTPUT: self.write_output(_("%s is not an output.") % signal_name)
-        elif error_type == self.network.DEVICE_ABSENT: self.write_output(_("%s is not defined.") % signal_name)
-        else: self.write_output(_("Could not add monitor on %s.") % signal_name)
-        
+        error_type = self.monitors.make_monitor(
+            device_id, output_id, self.cycles_completed)
+        if error_type == self.monitors.NO_ERROR:
+            self.do_add_monitor(signal_name)
+        elif error_type == self.monitors.MONITOR_PRESENT:
+            self.write_output(_("Monitor on %s already exists.") % signal_name)
+        elif error_type == self.monitors.NOT_OUTPUT:
+            self.write_output(_("%s is not an output.") % signal_name)
+        elif error_type == self.network.DEVICE_ABSENT:
+            self.write_output(_("%s is not defined.") % signal_name)
+        else:
+            self.write_output(_("Could not add monitor on %s.") % signal_name)
+
         self.update_scrollbars()
         self.canvas.Refresh()
 
@@ -841,33 +917,45 @@ class Gui(wx.Frame):
         if len(parts) != 2:
             self.write_output(_("Error: usage is z X, for example z G1."))
             return
-            
+
         signal_name = parts[1]
-        if "." in signal_name: device_name, output_name = signal_name.split(".", 1)
-        else: device_name, output_name = signal_name, None
+        if "." in signal_name:
+            device_name, output_name = signal_name.split(".", 1)
+        else:
+            device_name, output_name = signal_name, None
 
         device_id = self.names.query(device_name)
         if device_name is None:
-            self.write_output(_("Error: device '%s' is not defined.") % device_name)
+            self.write_output(
+                _("Error: device '%s' is not defined.") %
+                device_name)
             return
 
         if output_name is not None:
             output_id = self.names.query(output_name)
             if output_id is None:
-                self.write_output(_("Error: output '%s' is not defined.") % output_name)
+                self.write_output(
+                    _("Error: output '%s' is not defined.") %
+                    output_name)
                 return
-                
+
         device_id, output_id = self.devices.get_signal_ids(signal_name)
         device = self.devices.get_device(device_id)
 
         if device is None:
-            self.write_output(_("Error: device '%s' is not in the network.") % device_name)
+            self.write_output(
+                _("Error: device '%s' is not in the network.") %
+                device_name)
             return
         if output_id not in device.outputs:
-            self.write_output(_("Error: signal '%s' is not an output.") % signal_name)
+            self.write_output(
+                _("Error: signal '%s' is not an output.") %
+                signal_name)
             return
         if (device_id, output_id) not in self.monitors.monitors_dictionary:
-            self.write_output(_("Error: no monitor exists on signal '%s'.") % signal_name)
+            self.write_output(
+                _("Error: no monitor exists on signal '%s'.") %
+                signal_name)
             return
 
         self.monitors.remove_monitor(device_id, output_id)
@@ -877,13 +965,15 @@ class Gui(wx.Frame):
 
     def handle_help_command(self, parts):
         cycles = self.get_cycle_argument(parts, "h")
-        if cycles is None: return
+        if cycles is None:
+            return
 
     def get_cycle_argument(self, parts, usage):
         if len(parts) != 2:
             self.write_output(_("Error: usage is %s.") % usage)
             return None
-        try: cycles = int(parts[1])
+        try:
+            cycles = int(parts[1])
         except ValueError:
             self.write_output(_("Error: number of cycles must be an integer."))
             return None
@@ -899,7 +989,7 @@ class Gui(wx.Frame):
         if cold_start:
             self.do_prepare_fresh_run()
             self.cycles_completed = 0
-            
+
         self.cycles_remaining = cycles
         self.is_running = True
         self.write_output(_("Running for %s cycle(s).") % cycles)
@@ -908,18 +998,22 @@ class Gui(wx.Frame):
         self.run_next_cycle()
 
     def run_next_cycle(self):
-        if not self.is_running: return
+        if not self.is_running:
+            return
 
         if self.cycles_remaining <= 0:
             self.is_running = False
             self.write_output(_("Simulation finished."))
-            self.canvas.render(_("Simulation finished after %s cycle(s).") % self.cycles_completed)
+            self.canvas.render(
+                _("Simulation finished after %s cycle(s).") %
+                self.cycles_completed)
             return
 
         success = self.do_one_simulation_cycle()
         if not success:
             self.is_running = False
-            self.write_output(_("Error: simulation failed to reach steady state."))
+            self.write_output(
+                _("Error: simulation failed to reach steady state."))
             self.canvas.render(_("Simulation error."))
             return
 
@@ -936,7 +1030,8 @@ class Gui(wx.Frame):
 
     def do_one_simulation_cycle(self):
         success = self.network.execute_network(self.cycles_completed)
-        if success: self.monitors.record_signals()
+        if success:
+            self.monitors.record_signals()
         return success
 
     def do_set_switch(self, switch_name, switch_value):
@@ -945,7 +1040,9 @@ class Gui(wx.Frame):
             self.write_output(_("Error: unknown switch %s.") % switch_name)
             return
         self.devices.set_switch(switch_id, switch_value)
-        self.write_output(_("Set switch %s to %s.") % (switch_name, switch_value))
+        self.write_output(
+            _("Set switch %s to %s.") %
+            (switch_name, switch_value))
         self.update_switch_buttons
 
     def do_add_monitor(self, signal_name):
@@ -972,7 +1069,7 @@ class Gui(wx.Frame):
 
 if __name__ == "__main__":
     app = wx.App()
-    
+
     lang_pref = "en"
     if os.path.exists("lang_pref.txt"):
         with open("lang_pref.txt", "r") as f:
@@ -988,7 +1085,13 @@ if __name__ == "__main__":
     locale = wx.Locale(wx_lang)
     locale.AddCatalogLookupPathPrefix('locale')
     locale.AddCatalog('logsim')
-    
-    gui = Gui("Logic Simulator GUI Test", path=None, names=None, devices=None, network=None, monitors=None)
+
+    gui = Gui(
+        "Logic Simulator GUI Test",
+        path=None,
+        names=None,
+        devices=None,
+        network=None,
+        monitors=None)
     gui.Show()
     app.MainLoop()
