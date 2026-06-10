@@ -57,7 +57,7 @@ class Scanner:
         "HEADINGS", "END", "DEVICE", "IDENTIFIER", "NAME",
         "COMMA", "SEMICOLON", "EQUAL", "COLON", "DOT",
         "OPEN_PAREN", "CLOSE_PAREN", "ARROW", "NUMBER", "EOF", "INVALID"
-        )
+    )
 
     def __init__(self, path, names):
         """Scan the definition file and return tokens for the parser."""
@@ -86,7 +86,7 @@ class Scanner:
         self.device_list_ni = ["DTYPE", "NOT"]
         # i means need to specify number of input
         self.device_list_i = ["AND", "XOR", "OR",
-                              "NAND", "NOR", "CLOCK", "SWITCH","SIGGEN"]
+                              "NAND", "NOR", "CLOCK", "SWITCH", "SIGGEN"]
         self.names.lookup(self.device_list_ni + self.device_list_i)
         # identifier
         self.identifier_list = [f'I{i}' for i in range(
@@ -111,11 +111,9 @@ class Scanner:
         self.identifier_set = set(self.identifier_list)
 
     def get_symbol(self):
-        """Translate the next sequence of characters into a symbol."""
-        self.skip_spaces_and_comments()  # current character now not whitespace
+        self.skip_spaces_and_comments()
 
         self.symbol = Symbol()
-
         self.symbol.line = self.line_number
         self.symbol.column = self.column_number
 
@@ -129,8 +127,7 @@ class Scanner:
             name_string = name_list
             self.symbol.id = self.names.lookup([name_string])[0]
             self.symbol.length = len(name_list)
-            if name_string.islower():
-                return None
+            
             if name_string in self.heading_set:
                 self.symbol.type = self.HEADINGS
             elif name_string in self.end_list:
@@ -149,8 +146,7 @@ class Scanner:
             self.symbol.length = len(self.symbol.id)
             return self.symbol
 
-        # punctuation
-        elif self.current_character == ";":
+        if self.current_character == ";":
             self.symbol.type = self.SEMICOLON
             self.symbol.length = 1
             self.advance()
@@ -187,10 +183,11 @@ class Scanner:
             else:
                 self.symbol.type = self.INVALID
                 self.symbol.length = 0
-
         else:
-            self.advance()
             self.symbol.type = self.INVALID
+            self.symbol.length = 0
+            self.advance()
+
         return self.symbol
 
     def get_name(self):
@@ -238,13 +235,14 @@ class Scanner:
         return self.current_character
 
     def print_error_line(self, error_line_number, error_column_number):
-        """Print the line of code and a caret pointing to the error location."""
+        """Print the line of code and a caret pointing
+        to the error location."""
         if error_line_number >= len(self.file_lines):
             print("Error occurred at the end of the file (unexpected EOF).")
             return
         code_line = self.file_lines[error_line_number]
         pointer_string = (" " * ((error_column_number - 1) +
-                          len(str(error_line_number+1))+8)) + "^"
+                          len(str(error_line_number + 1)) + 8)) + "^"
         print("Line", error_line_number + 1, ":", code_line)
         # print(code_line)
         print(pointer_string)

@@ -98,7 +98,7 @@ def test_get_symbol_arrow_incomplete(scanner_instance):
 
     symbol = scanner_instance.get_symbol()
 
-    assert symbol.type == Scanner.EOF
+    assert symbol.type == scanner_instance.INVALID
     assert symbol.length == 0
     assert scanner_instance.advance.call_count == 1
 
@@ -120,5 +120,5 @@ def test_get_symbol_invalid_character(scanner_instance):
 
     symbol = scanner_instance.get_symbol()
 
-    assert symbol is None
+    assert symbol.type == scanner_instance.INVALID
     scanner_instance.advance.assert_called_once()

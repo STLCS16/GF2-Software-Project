@@ -57,15 +57,22 @@ def test_make_device(new_devices):
     names = new_devices.names
 
     [NAND1_ID, CLOCK1_ID, D1_ID, I1_ID,
-     I2_ID] = names.lookup(["Nand1", "Clock1", "D1", "I1", "I2"])
+     I2_ID, RC1_ID, SIG1_ID] = names.lookup(["Nand1", "Clock1", "D1", "I1",
+                                             "I2", "Rc1", "Sig1"])
     new_devices.make_device(NAND1_ID, new_devices.NAND, 2)  # 2-input NAND
     # Clock half period is 5
     new_devices.make_device(CLOCK1_ID, new_devices.CLOCK, 5)
     new_devices.make_device(D1_ID, new_devices.D_TYPE)
+    # RC time constant / cycles is 3
+    new_devices.make_device(RC1_ID, new_devices.RC, 3)
+    # SIGGEN waveform is a tuple of 1s and 0s
+    new_devices.make_device(SIG1_ID, new_devices.SIGGEN, (0, 1, 1, 0))
 
     nand_device = new_devices.get_device(NAND1_ID)
     clock_device = new_devices.get_device(CLOCK1_ID)
     dtype_device = new_devices.get_device(D1_ID)
+    rc_device = new_devices.get_device(RC1_ID)
+    siggen_device = new_devices.get_device(SIG1_ID)
 
     assert nand_device.inputs == {I1_ID: None, I2_ID: None}
     assert clock_device.inputs == {}
@@ -73,6 +80,8 @@ def test_make_device(new_devices):
                                    new_devices.SET_ID: None,
                                    new_devices.CLEAR_ID: None,
                                    new_devices.CLK_ID: None}
+    assert rc_device.inputs == {}
+    assert siggen_device.inputs == {}
 
     assert nand_device.outputs == {None: new_devices.LOW}
 
@@ -83,10 +92,23 @@ def test_make_device(new_devices):
     assert dtype_device.outputs == {new_devices.Q_ID: new_devices.LOW,
                                     new_devices.QBAR_ID: new_devices.LOW}
 
+    # RC initializes its output to HIGH on cold_startup
+    assert rc_device.outputs == {None: new_devices.HIGH}
+
+    # SIGGEN initializes its output to the first bit of the waveform
+    assert siggen_device.outputs == {None: new_devices.LOW}
+
     assert clock_device.clock_half_period == 5
     # Clock counter and D-type memory are initially at random states
     assert clock_device.clock_counter in range(5)
     assert dtype_device.dtype_memory in [new_devices.LOW, new_devices.HIGH]
+
+    # Check RC parameters
+    assert rc_device.rc_n == 3
+
+    # Check SIGGEN parameters
+    assert siggen_device.siggen_waveform == [0, 1, 1, 0]
+    assert siggen_device.siggen_counter == 0
 
 
 @pytest.mark.parametrize("function_args, error", [
@@ -97,6 +119,19 @@ def test_make_device(new_devices):
     ("(CL_ID, new_devices.CLOCK, 0)", "new_devices.INVALID_QUALIFIER"),
     ("(CL_ID, new_devices.CLOCK, 10)", "new_devices.NO_ERROR"),
 
+    # New Error Handling Tests for RC
+    ("(RC_ID, new_devices.RC, None)", "new_devices.NO_QUALIFIER"),
+    ("(RC_ID, new_devices.RC, 0)", "new_devices.INVALID_QUALIFIER"),
+
+    # New Error Handling Tests for SIGGEN
+    ("(SIG_ID, new_devices.SIGGEN, None)", "new_devices.NO_QUALIFIER"),
+    ("(SIG_ID, new_devices.SIGGEN, [0, 1])",
+     "new_devices.INVALID_QUALIFIER"),
+    # Should be a tuple
+    ("(SIG_ID, new_devices.SIGGEN, (0, 2))",
+     "new_devices.INVALID_QUALIFIER"),
+    # Contains invalid logic levels
+
     # Note: XOR device X2_ID will have been made earlier in the function
     ("(X2_ID, new_devices.XOR)", "new_devices.DEVICE_PRESENT"),
 ])
@@ -104,7 +139,8 @@ def test_make_device_gives_errors(new_devices, function_args, error):
     """Test if make_device returns the appropriate errors."""
     names = new_devices.names
     [AND1_ID, SW1_ID, CL_ID, D_ID, X1_ID,
-     X2_ID] = names.lookup(["And1", "Sw1", "Clock1", "D1", "Xor1", "Xor2"])
+     X2_ID, RC_ID, SIG_ID] = names.lookup(["And1", "Sw1", "Clock1", "D1",
+                                           "Xor1", "Xor2", "Rc1", "Sig1"])
 
     # Add a XOR device: X2_ID
     new_devices.make_device(X2_ID, new_devices.XOR)
