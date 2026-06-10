@@ -533,10 +533,10 @@ class Gui(wx.Frame):
         self.trace_mode_button = wx.Button(
             terminal_panel, wx.ID_ANY, _("3D Trace"))
         self.add_monitor_button = wx.Button(
-            terminal_panel, wx.ID_ANY, "Add Monitor"
+            terminal_panel, wx.ID_ANY, _("Add Monitor")
         )
         self.zap_monitor_button = wx.Button(
-            terminal_panel, wx.ID_ANY, "Zap Monitor"
+            terminal_panel, wx.ID_ANY, _("Zap Monitor")
         )
 
         toolbar_sizer.Add(self.run_button, 0, wx.RIGHT, 5)
@@ -686,7 +686,7 @@ class Gui(wx.Frame):
         signal_name = self.text_box.GetValue().strip()
 
         if not signal_name:
-            self.write_output("Error: enter a signal name to monitor.")
+            self.write_output(_("Error: enter a signal name to monitor."))
             return
 
         command = "m " + signal_name
@@ -698,7 +698,7 @@ class Gui(wx.Frame):
         signal_name = self.text_box.GetValue().strip()
 
         if not signal_name:
-            self.write_output("Error: enter a signal name to remove.")
+            self.write_output(_("Error: enter a signal name to remove."))
             return
 
         command = "z " + signal_name
@@ -784,13 +784,12 @@ class Gui(wx.Frame):
         self.devices.set_switch(switch_id, new_value)
 
         self.write_output(
-            "Set switch " + switch_name + " to " + str(new_value) + "."
-        )
+    _("Set switch %s to %s.") % (switch_name, new_value))
 
         self.update_switch_box()
         self.update_switch_buttons()
         self.canvas.render(
-            "Switch " + switch_name + " set to " + str(new_value) + "."
+            _("Set switch %s to %s.") % (switch_name, new_value)
         )
 
     def update_switch_buttons(self):

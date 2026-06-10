@@ -43,6 +43,12 @@ msgstr "Tracé 3D"
 msgid "2D Trace"
 msgstr "Tracé 2D"
 
+# msgid "Zap Monitor"
+# msgstr "Effacer le moniteur"
+
+msgid "Add Monitor"
+msgstr "Ajouter un moniteur"
+
 msgid "Ready. Type h for help"
 msgstr "Prêt. Tapez h pour obtenir de l'aide"
 
@@ -168,3 +174,4 @@ msgstr "Moniteur ajouté sur %s."
 
 msgid "Removed monitor from %s."
 msgstr "Moniteur supprimé de %s."
+

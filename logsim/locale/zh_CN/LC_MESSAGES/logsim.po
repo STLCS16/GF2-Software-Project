@@ -43,6 +43,12 @@ msgstr "3D 追踪"
 msgid "2D Trace"
 msgstr "2D 追踪"
 
+# msgid "Zap Monitor"
+# msgstr "清除监控器"
+
+msgid "Add Monitor"
+msgstr "添加监控器"
+
 msgid "Ready. Type h for help"
 msgstr "就绪。输入 h 获取帮助"
 
