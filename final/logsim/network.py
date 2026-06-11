@@ -415,11 +415,9 @@ class Network:
                 current_bit = device.siggen_waveform[current_idx]
                 next_bit = device.siggen_waveform[next_idx]
 
-                if current_bit == (self.devices.LOW and
-                                   next_bit == self.devices.HIGH):
+                if current_bit == self.devices.LOW and next_bit == self.devices.HIGH:
                     device.outputs[None] = self.devices.RISING
-                elif current_bit == (self.devices.HIGH and
-                                     next_bit == self.devices.LOW):
+                elif current_bit == self.devices.HIGH and next_bit == self.devices.LOW:
                     device.outputs[None] = self.devices.FALLING
                 else:
                     device.outputs[None] = next_bit
