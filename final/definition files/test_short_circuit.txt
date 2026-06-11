@@ -1,0 +1,10 @@
+DEVICES:
+  SW1 = SWITCH(1);
+  SW2 = SWITCH(1);
+  A1 = AND(2);
+CONNECTIONS:
+  SW1 -> A1.I1;
+  SW2 -> A1.I1;
+SIGNALS:
+  A1;
+END
