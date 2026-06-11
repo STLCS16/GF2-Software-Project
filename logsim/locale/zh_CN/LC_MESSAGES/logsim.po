@@ -184,3 +184,5 @@ msgstr "错误: 请输入要移除的信号名称。"
 msgid "Reset View"
 msgstr "恢复视角"
 
+msgid "Canvas view reset."
+msgstr "画布视图已重置。"
