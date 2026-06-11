@@ -181,4 +181,6 @@ msgstr "错误: 请输入要监视的信号名称。"
 msgid "Error: enter a signal name to remove."
 msgstr "错误: 请输入要移除的信号名称。"
 
+msgid "Reset View"
+msgstr "恢复视角"
 

@@ -181,3 +181,5 @@ msgstr "Erreur : entrez un nom de signal à surveiller."
 msgid "Error: enter a signal name to remove."
 msgstr "Erreur : entrez un nom de signal à supprimer."
 
+msgid "Reset View"
+msgstr "Réinitialiser la vue"
