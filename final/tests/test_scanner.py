@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from scanner import Scanner, Symbol
+from logsim.scanner import Scanner, Symbol
 
 
 class DummyNames:

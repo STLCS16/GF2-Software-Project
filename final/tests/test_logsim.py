@@ -2,16 +2,16 @@ import pytest
 import sys
 from unittest.mock import patch, mock_open, MagicMock
 
-import logsim
+from logsim import logsim
 
 
 @pytest.fixture
 def mock_dependencies():
-    with patch('logsim.Scanner') as mock_scanner, \
-            patch('logsim.Parser') as mock_parser, \
-            patch('logsim.UserInterface') as mock_userint, \
-            patch('logsim.Gui') as mock_gui, \
-            patch('logsim.wx') as mock_wx:
+    with patch('logsim.logsim.Scanner') as mock_scanner, \
+            patch('logsim.logsim.Parser') as mock_parser, \
+            patch('logsim.logsim.UserInterface') as mock_userint, \
+            patch('logsim.logsim.Gui') as mock_gui, \
+            patch('logsim.logsim.wx') as mock_wx:
 
         instance_parser = mock_parser.return_value
         instance_parser.parse_network.return_value = True

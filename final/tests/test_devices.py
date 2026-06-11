@@ -1,8 +1,8 @@
 """Test the devices module."""
 import pytest
 
-from names import Names
-from devices import Devices
+from logsim.names import Names
+from logsim.devices import Devices
 
 
 @pytest.fixture
@@ -33,7 +33,6 @@ def test_get_device(devices_with_items):
     for device in devices_with_items.devices_list:
         assert devices_with_items.get_device(device.device_id) == device
 
-        # get_device should return None for non-device IDs
         [X_ID] = names.lookup(["Random_non_device"])
         assert devices_with_items.get_device(X_ID) is None
 
@@ -59,13 +58,10 @@ def test_make_device(new_devices):
     [NAND1_ID, CLOCK1_ID, D1_ID, I1_ID,
      I2_ID, RC1_ID, SIG1_ID] = names.lookup(["Nand1", "Clock1", "D1", "I1",
                                              "I2", "Rc1", "Sig1"])
-    new_devices.make_device(NAND1_ID, new_devices.NAND, 2)  # 2-input NAND
-    # Clock half period is 5
+    new_devices.make_device(NAND1_ID, new_devices.NAND, 2)
     new_devices.make_device(CLOCK1_ID, new_devices.CLOCK, 5)
     new_devices.make_device(D1_ID, new_devices.D_TYPE)
-    # RC time constant / cycles is 3
     new_devices.make_device(RC1_ID, new_devices.RC, 3)
-    # SIGGEN waveform is a tuple of 1s and 0s
     new_devices.make_device(SIG1_ID, new_devices.SIGGEN, (0, 1, 1, 0))
 
     nand_device = new_devices.get_device(NAND1_ID)
@@ -85,28 +81,19 @@ def test_make_device(new_devices):
 
     assert nand_device.outputs == {None: new_devices.LOW}
 
-    # Clock could be anywhere in its cycle
     assert clock_device.outputs in [{None: new_devices.LOW},
                                     {None: new_devices.HIGH}]
 
     assert dtype_device.outputs == {new_devices.Q_ID: new_devices.LOW,
                                     new_devices.QBAR_ID: new_devices.LOW}
 
-    # RC initializes its output to HIGH on cold_startup
     assert rc_device.outputs == {None: new_devices.HIGH}
-
-    # SIGGEN initializes its output to the first bit of the waveform
     assert siggen_device.outputs == {None: new_devices.LOW}
 
     assert clock_device.clock_half_period == 5
-    # Clock counter and D-type memory are initially at random states
     assert clock_device.clock_counter in range(5)
     assert dtype_device.dtype_memory in [new_devices.LOW, new_devices.HIGH]
-
-    # Check RC parameters
     assert rc_device.rc_n == 3
-
-    # Check SIGGEN parameters
     assert siggen_device.siggen_waveform == [0, 1, 1, 0]
     assert siggen_device.siggen_counter == 0
 
@@ -118,21 +105,14 @@ def test_make_device(new_devices):
     ("(D_ID, D_ID, None)", "new_devices.BAD_DEVICE"),
     ("(CL_ID, new_devices.CLOCK, 0)", "new_devices.INVALID_QUALIFIER"),
     ("(CL_ID, new_devices.CLOCK, 10)", "new_devices.NO_ERROR"),
-
-    # New Error Handling Tests for RC
     ("(RC_ID, new_devices.RC, None)", "new_devices.NO_QUALIFIER"),
     ("(RC_ID, new_devices.RC, 0)", "new_devices.INVALID_QUALIFIER"),
 
-    # New Error Handling Tests for SIGGEN
     ("(SIG_ID, new_devices.SIGGEN, None)", "new_devices.NO_QUALIFIER"),
     ("(SIG_ID, new_devices.SIGGEN, [0, 1])",
      "new_devices.INVALID_QUALIFIER"),
-    # Should be a tuple
     ("(SIG_ID, new_devices.SIGGEN, (0, 2))",
      "new_devices.INVALID_QUALIFIER"),
-    # Contains invalid logic levels
-
-    # Note: XOR device X2_ID will have been made earlier in the function
     ("(X2_ID, new_devices.XOR)", "new_devices.DEVICE_PRESENT"),
 ])
 def test_make_device_gives_errors(new_devices, function_args, error):
@@ -141,11 +121,8 @@ def test_make_device_gives_errors(new_devices, function_args, error):
     [AND1_ID, SW1_ID, CL_ID, D_ID, X1_ID,
      X2_ID, RC_ID, SIG_ID] = names.lookup(["And1", "Sw1", "Clock1", "D1",
                                            "Xor1", "Xor2", "Rc1", "Sig1"])
-
-    # Add a XOR device: X2_ID
     new_devices.make_device(X2_ID, new_devices.XOR)
 
-    # left_expression is of the form: new_devices.make_device(...)
     left_expression = eval("".join(["new_devices.make_device", function_args]))
     right_expression = eval(error)
     assert left_expression == right_expression
@@ -174,13 +151,11 @@ def test_get_signal_ids(devices_with_items):
 def test_set_switch(new_devices):
     """Test if set_switch changes the switch state correctly."""
     names = new_devices.names
-    # Make a switch
     [SW1_ID] = names.lookup(["Sw1"])
     new_devices.make_device(SW1_ID, new_devices.SWITCH, 1)
     switch_object = new_devices.get_device(SW1_ID)
 
     assert switch_object.switch_state == new_devices.HIGH
 
-    # Set switch Sw1 to LOW
     new_devices.set_switch(SW1_ID, new_devices.LOW)
     assert switch_object.switch_state == new_devices.LOW

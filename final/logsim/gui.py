@@ -15,12 +15,12 @@ import math
 import numpy as np
 from OpenGL import GL, GLUT, GLU
 import os
-from names import Names
-from devices import Devices
-from network import Network
-from monitors import Monitors
-from scanner import Scanner
-from parse import Parser
+from logsim.names import Names
+from logsim.devices import Devices
+from logsim.network import Network
+from logsim.monitors import Monitors
+from logsim.scanner import Scanner
+from logsim.parse import Parser
 
 _ = wx.GetTranslation
 
@@ -1166,9 +1166,14 @@ class Gui(wx.Frame):
 if __name__ == "__main__":
     app = wx.App()
 
+    # 1. Get the absolute path of the directory containing this file (gui.py)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
     lang_pref = "en"
-    if os.path.exists("lang_pref.txt"):
-        with open("lang_pref.txt", "r") as f:
+    # Use absolute path for lang_pref.txt
+    lang_file_path = os.path.join(base_dir, "lang_pref.txt")
+    if os.path.exists(lang_file_path):
+        with open(lang_file_path, "r") as f:
             lang_pref = f.read().strip()
 
     if lang_pref == "fr":
@@ -1179,7 +1184,10 @@ if __name__ == "__main__":
         wx_lang = wx.LANGUAGE_ENGLISH
 
     locale = wx.Locale(wx_lang)
-    locale.AddCatalogLookupPathPrefix('locale')
+    
+    # 2. Use absolute path for the locale folder
+    locale_dir = os.path.join(base_dir, 'locale')
+    locale.AddCatalogLookupPathPrefix(locale_dir)
     locale.AddCatalog('logsim')
 
     gui = Gui(
