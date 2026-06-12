@@ -15,6 +15,8 @@ import math
 import numpy as np
 from OpenGL import GL, GLUT, GLU
 import os
+import sys
+import subprocess
 from names import Names
 from devices import Devices
 from network import Network
@@ -627,7 +629,11 @@ class Gui(wx.Frame):
         self.zap_monitor_button = wx.Button(
             terminal_panel, wx.ID_ANY, _("Zap Monitor")
         )
-        
+        self.restart_button = wx.Button(
+            terminal_panel,
+            wx.ID_ANY,
+            _("Restart")
+        )
 
         toolbar_sizer.Add(self.run_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.continue_button, 0, wx.RIGHT, 5)
@@ -636,6 +642,7 @@ class Gui(wx.Frame):
         toolbar_sizer.Add(self.zap_monitor_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.trace_mode_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.reset_view_button, 0, wx.RIGHT, 5)
+        toolbar_sizer.Add(self.restart_button, 0, wx.RIGHT, 5)
 
         self.output_box = wx.TextCtrl(
             terminal_panel,
@@ -697,6 +704,7 @@ class Gui(wx.Frame):
         self.zap_monitor_button.Bind(
             wx.EVT_BUTTON, self.on_zap_monitor_button
         )
+        self.restart_button.Bind(wx.EVT_BUTTON, self.on_restart_button)
         self.reset_view_button.Bind(wx.EVT_BUTTON, self.on_reset_view_button)
         self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
         self.trace_mode_button.Bind(wx.EVT_BUTTON, self.on_trace_mode_button)
@@ -912,6 +920,28 @@ class Gui(wx.Frame):
         self.h_scroll.SetRange(0, max_horizontal_scroll)
         self.v_scroll.SetRange(0, max_vertical_scroll)
 
+    def on_restart_button(self, event):
+        """Close this GUI and restart logsim with the same definition file."""
+        if self.path is None:
+            self.write_output(_("Error: no definition file path is available."))
+            return
+
+        self.is_running = False
+        self.cycles_remaining = 0
+
+        gui_directory = os.path.dirname(os.path.abspath(__file__))
+        logsim_path = os.path.join(gui_directory, "logsim.py")
+
+        try:
+            subprocess.Popen([sys.executable, logsim_path, self.path])
+        except OSError as error:
+            self.write_output(
+                _("Error: could not restart simulator: %s") % str(error)
+            )
+            return
+
+        self.Close(True)
+
     def process_command(self, command):
         """Interpret a terminal command and call the appropriate method."""
         if not command:
@@ -1109,7 +1139,9 @@ class Gui(wx.Frame):
         if not success:
             self.is_running = False
             self.write_output(
-                _("Error: simulation failed to reach steady state."))
+                _("Error: the circuit did not settle during this simulation cycle."
+                  "This usually means a signal is repeatedly changing,"
+                  "often because of a feedback loop through gates without a DTYPE or other memory element."))
             self.canvas.render(_("Simulation error."))
             return
 
