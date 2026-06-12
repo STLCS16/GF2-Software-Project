@@ -81,16 +81,11 @@ def main(arg_list):
         scanner = Scanner(path, names)
         parser = Parser(names, devices, network, monitors, scanner)
         if parser.parse_network():
-            # Initialise an instance of the gui.Gui() class
             app = wx.App()
-
-            # 1. Get the directory of logsim.py (which is final/logsim)
             current_dir = os.path.dirname(os.path.abspath(__file__))
             
-            # 2. Go up ONE level to get to the 'final' folder!
             base_dir = os.path.dirname(current_dir)
 
-            # Now everything correctly points to the root 'final' folder
             lang_file_path = os.path.join(base_dir, "lang_pref.txt")
 
             lang_pref = "en"
