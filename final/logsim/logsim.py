@@ -16,14 +16,14 @@ import sys
 import wx
 import os
 
-from names import Names
-from devices import Devices
-from network import Network
-from monitors import Monitors
-from scanner import Scanner
-from parse import Parser
-from userint import UserInterface
-from gui import Gui
+from logsim.names import Names
+from logsim.devices import Devices
+from logsim.network import Network
+from logsim.monitors import Monitors
+from logsim.scanner import Scanner
+from logsim.parse import Parser
+from logsim.userint import UserInterface
+from logsim.gui import Gui
 
 
 _ = wx.GetTranslation
@@ -84,9 +84,18 @@ def main(arg_list):
             # Initialise an instance of the gui.Gui() class
             app = wx.App()
 
+            # 1. Get the directory of logsim.py (which is final/logsim)
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            
+            # 2. Go up ONE level to get to the 'final' folder!
+            base_dir = os.path.dirname(current_dir)
+
+            # Now everything correctly points to the root 'final' folder
+            lang_file_path = os.path.join(base_dir, "lang_pref.txt")
+
             lang_pref = "en"
-            if os.path.exists("lang_pref.txt"):
-                with open("lang_pref.txt", "r") as f:
+            if os.path.exists(lang_file_path):
+                with open(lang_file_path, "r") as f:
                     lang_pref = f.read().strip()
 
             if lang_pref == "fr":
@@ -97,12 +106,11 @@ def main(arg_list):
                 wx_lang = wx.LANGUAGE_ENGLISH
             app.locale = wx.Locale(wx_lang)
 
-            locale_dir = os.path.join(
-                os.path.dirname(
-                    os.path.abspath(__file__)),
-                'locale')
+            # Points to final/locale
+            locale_dir = os.path.join(base_dir, 'locale')
             app.locale.AddCatalogLookupPathPrefix(locale_dir)
             app.locale.AddCatalog('logsim')
+            
             gui = Gui("Logic Simulator", path, names, devices, network,
                       monitors)
             gui.Show(True)

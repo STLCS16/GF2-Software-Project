@@ -1,5 +1,5 @@
 import pytest
-from names import Names
+from logsim.names import Names
 
 
 @pytest.fixture

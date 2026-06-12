@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
-from parse import Parser, ParseSyntaxError, ParseSemanticError
+from logsim.parse import Parser, ParseSyntaxError, ParseSemanticError
+from logsim.scanner import Scanner
 
 
 class MockSymbol:
@@ -52,13 +53,10 @@ def parser(mock_dependencies):
     return Parser(names, devices, network, monitors, scanner)
 
 
-# --- FIXED TESTS ---
-
 def test_name_invalid_raises_syntax_error(parser, mock_dependencies):
     _, _, _, _, scanner = mock_dependencies
     parser.symbol = MockSymbol(type_=scanner.NUMBER)
 
-    # FIX: Provide an EOF symbol so synchronise() can break out of its loop
     scanner.get_symbol.return_value = MockSymbol(type_=scanner.EOF)
 
     with pytest.raises(ParseSyntaxError):
@@ -69,7 +67,6 @@ def test_device_invalid_raises_syntax_error(parser, mock_dependencies):
     _, _, _, _, scanner = mock_dependencies
     parser.symbol = MockSymbol(id_=-999)
 
-    # FIX: Provide an EOF symbol so synchronise() can break out of its loop
     scanner.get_symbol.return_value = MockSymbol(type_=scanner.EOF)
 
     with pytest.raises(ParseSyntaxError):

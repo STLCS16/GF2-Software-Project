@@ -1,8 +1,8 @@
 import pytest
 
-from names import Names
-from devices import Devices
-from network import Network
+from logsim.names import Names
+from logsim.devices import Devices
+from logsim.network import Network
 
 
 @pytest.fixture
@@ -120,7 +120,6 @@ def test_make_connection(network_with_devices):
 @pytest.mark.parametrize("function_args, error", [
     ("(I1, I1, OR1_ID, I2)", "network.DEVICE_ABSENT"),
 
-    # Change this line from INPUT_TO_INPUT to RECURSIVE
     ("(OR1_ID, I2, OR1_ID, I2)", "network.RECURSIVE"),
 
     ("(SW1_ID, None, OR1_ID, None)", "network.OUTPUT_TO_OUTPUT"),

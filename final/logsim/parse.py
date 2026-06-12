@@ -9,7 +9,7 @@ Classes
 Parser - parses the definition file and builds the logic network.
 """
 
-from scanner import Symbol
+from logsim.scanner import Symbol
 
 
 class ParseSyntaxError(Exception):

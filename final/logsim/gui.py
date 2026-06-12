@@ -15,12 +15,12 @@ import math
 import numpy as np
 from OpenGL import GL, GLUT, GLU
 import os
-from names import Names
-from devices import Devices
-from network import Network
-from monitors import Monitors
-from scanner import Scanner
-from parse import Parser
+from logsim.names import Names
+from logsim.devices import Devices
+from logsim.network import Network
+from logsim.monitors import Monitors
+from logsim.scanner import Scanner
+from logsim.parse import Parser
 
 _ = wx.GetTranslation
 
@@ -91,10 +91,15 @@ class MyGLCanvas(wxcanvas.GLCanvas):
     def init_gl_2d(self):
         """Configure and initialise the OpenGL context."""
         size = self.GetClientSize()
+        if size.width <= 0 or size.height <= 0:
+            return
         self.SetCurrent(self.context)
         GL.glDrawBuffer(GL.GL_BACK)
         GL.glClearColor(1.0, 1.0, 1.0, 0.0)
         GL.glViewport(0, 0, size.width, size.height)
+        GL.glDisable(GL.GL_DEPTH_TEST)
+        GL.glDisable(GL.GL_LIGHTING)
+        GL.glDisable(GL.GL_CULL_FACE)
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
         GL.glOrtho(0, size.width, 0, size.height, -1, 1)
@@ -106,6 +111,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
     def init_gl_3d(self):
         """Configure OpenGL for the 3D trace view."""
         size = self.GetClientSize()
+        if size.width <= 0 or size.height <= 0:
+            return
         self.SetCurrent(self.context)
 
         GL.glViewport(0, 0, size.width, size.height)
@@ -149,6 +156,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         GL.glTranslatef(0.0, 0.0, -self.depth_offset)
         GL.glTranslatef(self.pan_x, self.pan_y, 0.0)
+        GL.glRotatef(90, 1, 0, 0)
+        GL.glRotatef(90, 0, 1, 0)
+        GL.glRotatef(-45, 0, 0, 1)
         GL.glMultMatrixf(self.scene_rotate)
         GL.glScalef(self.zoom, self.zoom, self.zoom)
 
@@ -156,19 +166,18 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         """Handle all drawing operations."""
         self.SetCurrent(self.context)
 
-        if not self.init:
-            self.init_gl()
-            self.init = True
-
         if text is not None:
             self.display_text = text
 
         if self.trace_mode == "2D":
+            self.init_gl_2d()
             GL.glClear(GL.GL_COLOR_BUFFER_BIT)
             size = self.GetClientSize()
             self.render_text_2d(self.display_text, 10, size.height - 20)
             self.draw_monitor_traces_2d()
+            self.draw_2d_sticky_trace_labels()
         else:
+            self.init_gl_3d()
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
             self.draw_monitor_traces_3d()
 
@@ -177,7 +186,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def draw_monitor_traces_2d(self):
         """Draw the monitor trace from self.monitors."""
-        start_x = 100
+        start_x = 125
         start_y = 230
         step_x = 25
         trace_gap = 60
@@ -192,11 +201,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             low_y = start_y - trace_index * trace_gap
             high_y = low_y + trace_height
 
-            self.render_text_2d(signal_name, 10, low_y)
-            self.render_text_2d("1", 50, high_y)
-            self.render_text_2d("0", 50, low_y)
             GL.glColor3f(0.0, 0.0, 1.0)
-            GL.glBegin(GL.GL_LINE_STRIP)
+            GL.glBegin(GL.GL_LINES)
 
             previous_y = None
             for i, signal in enumerate(signal_list):
@@ -226,6 +232,80 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 previous_y = y
 
             GL.glEnd()
+
+    def draw_2d_sticky_trace_labels(self):
+        """Draw monitor names fixed at the left, aligned with each trace row."""
+        size = self.GetClientSize()
+
+        start_y = 230
+        trace_gap = 60
+        trace_height = 25
+
+        label_x = 10
+        label_box_width = 95
+
+        # Switch temporarily to screen coordinates.
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glPushMatrix()
+        GL.glLoadIdentity()
+        GL.glOrtho(0, size.width, 0, size.height, -1, 1)
+
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glPushMatrix()
+        GL.glLoadIdentity()
+
+        GL.glDisable(GL.GL_DEPTH_TEST)
+        GL.glDisable(GL.GL_LIGHTING)
+
+        for trace_index, (device_id, output_id) in enumerate(
+                self.monitors.monitors_dictionary):
+
+            signal_name = self.devices.get_signal_name(device_id, output_id)
+
+            # Original trace y position in world coordinates.
+            low_y = start_y - trace_index * trace_gap
+            high_y = low_y + trace_height
+
+            # Convert world y position to screen y position.
+            screen_low_y = low_y * self.zoom + self.pan_y
+            screen_high_y = high_y * self.zoom + self.pan_y
+
+            # If this trace row is vertically off-screen, skip label.
+            if screen_high_y < 0 or screen_low_y > size.height:
+                continue
+
+            # Draw a small white background strip behind the label.
+            GL.glColor3f(1.0, 1.0, 1.0)
+            GL.glBegin(GL.GL_QUADS)
+            GL.glVertex2f(0, screen_low_y - 5)
+            GL.glVertex2f(label_box_width, screen_low_y - 5)
+            GL.glVertex2f(label_box_width, screen_high_y + 15)
+            GL.glVertex2f(0, screen_high_y + 15)
+            GL.glEnd()
+
+            # Draw the label at fixed x but trace-aligned y.
+            GL.glColor3f(0.0, 0.0, 0.0)
+            self.render_text_overlay(signal_name, label_x, screen_low_y)
+
+            self.render_text_overlay("1", label_x + 70, screen_high_y)
+            self.render_text_overlay("0", label_x + 70, screen_low_y)
+
+        GL.glEnable(GL.GL_DEPTH_TEST)
+
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glPopMatrix()
+
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glPopMatrix()
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+
+    def render_text_overlay(self, text, x_pos, y_pos):
+        """Draw text in fixed screen coordinates."""
+        GL.glRasterPos2f(x_pos, y_pos)
+        font = GLUT.GLUT_BITMAP_HELVETICA_12
+
+        for character in text:
+            GLUT.glutBitmapCharacter(font, ord(character))
 
     def draw_cuboid(self, x_pos, z_pos, half_width, half_depth, height):
         """Draw a cuboid at the specified position."""
@@ -325,11 +405,17 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def on_paint(self, event):
         """Handle the paint event."""
-        self.SetCurrent(self.context)
-        if not self.init:
-            self.init_gl()
-            self.init = True
+        wx.PaintDC(self)
         self.render()
+
+    def reset_view(self):
+        """Reset pan, zoom and 3D rotation."""
+        self.pan_x = 0
+        self.pan_y = 0
+        self.zoom = 1
+        self.scene_rotate = np.identity(4, "f")
+        self.init = False
+        self.Refresh()
 
     def on_size(self, event):
         """Handle the canvas resize event."""
@@ -488,7 +574,6 @@ class Gui(wx.Frame):
         menuBar.Append(fileMenu, _("&File"))
         self.SetMenuBar(menuBar)
 
-        self.canvas = MyGLCanvas(self, devices, monitors)
         canvas_panel = wx.Panel(self)
         canvas_outer_sizer = wx.BoxSizer(wx.VERTICAL)
         canvas_row_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -530,14 +615,19 @@ class Gui(wx.Frame):
         self.continue_button = wx.Button(
             terminal_panel, wx.ID_ANY, _("Continue"))
         self.stop_button = wx.Button(terminal_panel, wx.ID_ANY, _("Stop"))
-        self.trace_mode_button = wx.Button(
-            terminal_panel, wx.ID_ANY, _("3D Trace"))
+        self.trace_mode_button = wx.Button(terminal_panel, wx.ID_ANY, _("3D Trace"))
+        self.reset_view_button = wx.Button(
+            terminal_panel,
+            wx.ID_ANY,
+            _("Reset View")
+        )
         self.add_monitor_button = wx.Button(
             terminal_panel, wx.ID_ANY, _("Add Monitor")
         )
         self.zap_monitor_button = wx.Button(
             terminal_panel, wx.ID_ANY, _("Zap Monitor")
         )
+        
 
         toolbar_sizer.Add(self.run_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.continue_button, 0, wx.RIGHT, 5)
@@ -545,6 +635,7 @@ class Gui(wx.Frame):
         toolbar_sizer.Add(self.add_monitor_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.zap_monitor_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.trace_mode_button, 0, wx.RIGHT, 5)
+        toolbar_sizer.Add(self.reset_view_button, 0, wx.RIGHT, 5)
 
         self.output_box = wx.TextCtrl(
             terminal_panel,
@@ -606,6 +697,7 @@ class Gui(wx.Frame):
         self.zap_monitor_button.Bind(
             wx.EVT_BUTTON, self.on_zap_monitor_button
         )
+        self.reset_view_button.Bind(wx.EVT_BUTTON, self.on_reset_view_button)
         self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
         self.trace_mode_button.Bind(wx.EVT_BUTTON, self.on_trace_mode_button)
         self.h_scroll.Bind(wx.EVT_SLIDER, self.on_horizontal_scroll)
@@ -653,12 +745,12 @@ class Gui(wx.Frame):
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
         text = self.text_box.GetValue().strip()
-        if text:
-            command = text
+        if not text:
+            command = "r 20"
         elif text.isdigit():
             command = "r " + text
         else:
-            command = "r 20"
+            command = text
         self.process_command(command)
         self.text_box.Clear()
 
@@ -704,6 +796,11 @@ class Gui(wx.Frame):
         command = "z " + signal_name
         self.process_command(command)
         self.text_box.Clear()
+
+    def on_reset_view_button(self, event):
+        """Reset the canvas pan, zoom and 3D rotation."""
+        self.canvas.reset_view()
+        self.write_output(_("Canvas view reset."))
 
     def on_text_box(self, event):
         """Handle the event when the user enters text in the terminal box."""
@@ -1069,9 +1166,14 @@ class Gui(wx.Frame):
 if __name__ == "__main__":
     app = wx.App()
 
+    # 1. Get the absolute path of the directory containing this file (gui.py)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
     lang_pref = "en"
-    if os.path.exists("lang_pref.txt"):
-        with open("lang_pref.txt", "r") as f:
+    # Use absolute path for lang_pref.txt
+    lang_file_path = os.path.join(base_dir, "lang_pref.txt")
+    if os.path.exists(lang_file_path):
+        with open(lang_file_path, "r") as f:
             lang_pref = f.read().strip()
 
     if lang_pref == "fr":
@@ -1082,7 +1184,10 @@ if __name__ == "__main__":
         wx_lang = wx.LANGUAGE_ENGLISH
 
     locale = wx.Locale(wx_lang)
-    locale.AddCatalogLookupPathPrefix('locale')
+    
+    # 2. Use absolute path for the locale folder
+    locale_dir = os.path.join(base_dir, 'locale')
+    locale.AddCatalogLookupPathPrefix(locale_dir)
     locale.AddCatalog('logsim')
 
     gui = Gui(

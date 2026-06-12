@@ -1,10 +1,10 @@
 """Test the monitors module."""
 import pytest
 
-from names import Names
-from network import Network
-from devices import Devices
-from monitors import Monitors
+from logsim.names import Names
+from logsim.network import Network
+from logsim.devices import Devices
+from logsim.monitors import Monitors
 
 
 @pytest.fixture
@@ -17,16 +17,11 @@ def new_monitors():
 
     [SW1_ID, SW2_ID, OR1_ID, I1, I2] = new_names.lookup(["Sw1", "Sw2", "Or1",
                                                         "I1", "I2"])
-    # Add 2 switches and an OR gate
     new_devices.make_device(SW1_ID, new_devices.SWITCH, 0)
     new_devices.make_device(SW2_ID, new_devices.SWITCH, 0)
     new_devices.make_device(OR1_ID, new_devices.OR, 2)
-
-    # Make connections
     new_network.make_connection(SW1_ID, None, OR1_ID, I1)
     new_network.make_connection(SW2_ID, None, OR1_ID, I2)
-
-    # Set monitors
     new_monitors.make_monitor(SW1_ID, None)
     new_monitors.make_monitor(SW2_ID, None)
     new_monitors.make_monitor(OR1_ID, None)
@@ -56,11 +51,8 @@ def test_make_monitor_gives_errors(new_monitors):
     assert new_monitors.make_monitor(OR1_ID, I1) == new_monitors.NOT_OUTPUT
     assert new_monitors.make_monitor(SW1_ID,
                                      None) == new_monitors.MONITOR_PRESENT
-    # I1 is not a device_id in the network
     assert new_monitors.make_monitor(I1,
                                      None) == network.DEVICE_ABSENT
-
-    # Make a new switch device
     devices.make_device(SW3_ID, SWITCH_ID, 0)
 
     assert new_monitors.make_monitor(SW3_ID, None) == new_monitors.NO_ERROR
@@ -81,8 +73,6 @@ def test_get_signal_names(new_monitors):
     names = new_monitors.names
     devices = new_monitors.devices
     [D_ID] = names.lookup(["D1"])
-
-    # Create a D-type device
     devices.make_device(D_ID, devices.D_TYPE)
 
     assert new_monitors.get_signal_names() == [["Sw1", "Sw2", "Or1"],
@@ -99,17 +89,12 @@ def test_record_signals(new_monitors):
 
     HIGH = devices.HIGH
     LOW = devices.LOW
-
-    # Both switches are currently LOW
     network.execute_network()
     new_monitors.record_signals()
-
-    # Set Sw1 to HIGH
     devices.set_switch(SW1_ID, HIGH)
     network.execute_network()
     new_monitors.record_signals()
 
-    # Set Sw2 to HIGH
     devices.set_switch(SW2_ID, HIGH)
     network.execute_network()
     new_monitors.record_signals()
@@ -127,12 +112,10 @@ def test_get_margin(new_monitors):
     [D_ID, DTYPE_ID, QBAR_ID, Q_ID] = names.lookup(["Dtype1", "DTYPE",
                                                     "QBAR", "Q"])
 
-    # Create a D-type device and set monitors on its outputs
     devices.make_device(D_ID, DTYPE_ID)
     new_monitors.make_monitor(D_ID, QBAR_ID)
     new_monitors.make_monitor(D_ID, Q_ID)
 
-    # Longest name should be Dtype1.QBAR
     assert new_monitors.get_margin() == 11
 
 
@@ -164,16 +147,13 @@ def test_display_signals(capsys, new_monitors):
 
     HIGH = devices.HIGH
 
-    # Make a clock and set a monitor on its output
     devices.make_device(CL_ID, CLOCK_ID, 2)
     new_monitors.make_monitor(CL_ID, None)
 
-    # Both switches are currently LOW
     for _ in range(10):
         network.execute_network()
         new_monitors.record_signals()
 
-    # Set Sw1 to HIGH
     devices.set_switch(SW1_ID, HIGH)
     for _ in range(10):
         network.execute_network()
@@ -181,7 +161,6 @@ def test_display_signals(capsys, new_monitors):
 
     new_monitors.display_signals()
 
-    # Get std_output
     out, _ = capsys.readouterr()
 
     traces = out.split("\n")
@@ -190,10 +169,9 @@ def test_display_signals(capsys, new_monitors):
     assert "Sw2   : ____________________" in traces
     assert "Or1   : __________----------" in traces
 
-    # Clock could be anywhere in its cycle, but its half period is 2
     assert ("Clock1: __--__--__--__--__--" in traces or
             "Clock1: _--__--__--__--__--_" in traces or
             "Clock1: --__--__--__--__--__" in traces or
             "Clock1: -__--__--__--__--__-" in traces)
 
-    assert "" in traces  # additional empty line at the end
+    assert "" in traces
