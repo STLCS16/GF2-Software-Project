@@ -15,6 +15,8 @@ import math
 import numpy as np
 from OpenGL import GL, GLUT, GLU
 import os
+import sys
+import subprocess
 from names import Names
 from devices import Devices
 from network import Network
@@ -234,7 +236,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             GL.glEnd()
 
     def draw_2d_sticky_trace_labels(self):
-        """Draw monitor names fixed at the left, aligned with each trace row."""
+        """Draw monitor names fixed at the left."""
         size = self.GetClientSize()
 
         start_y = 230
@@ -524,11 +526,13 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 GLUT.glutBitmapCharacter(font, ord(character))
 
     def set_horizontal_scroll(self, value):
+        """Initialize horizontal scroll."""
         self.pan_x = -value
         self.init = False
         self.Refresh()
 
     def set_vertical_scroll(self, value):
+        """Initialize vertical scroll."""
         self.pan_y = value
         self.init = False
         self.Refresh()
@@ -615,7 +619,9 @@ class Gui(wx.Frame):
         self.continue_button = wx.Button(
             terminal_panel, wx.ID_ANY, _("Continue"))
         self.stop_button = wx.Button(terminal_panel, wx.ID_ANY, _("Stop"))
-        self.trace_mode_button = wx.Button(terminal_panel, wx.ID_ANY, _("3D Trace"))
+        self.trace_mode_button = wx.Button(
+            terminal_panel, wx.ID_ANY, _("3D Trace")
+        )
         self.reset_view_button = wx.Button(
             terminal_panel,
             wx.ID_ANY,
@@ -627,7 +633,11 @@ class Gui(wx.Frame):
         self.zap_monitor_button = wx.Button(
             terminal_panel, wx.ID_ANY, _("Zap Monitor")
         )
-        
+        self.restart_button = wx.Button(
+            terminal_panel,
+            wx.ID_ANY,
+            _("Restart")
+        )
 
         toolbar_sizer.Add(self.run_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.continue_button, 0, wx.RIGHT, 5)
@@ -636,6 +646,7 @@ class Gui(wx.Frame):
         toolbar_sizer.Add(self.zap_monitor_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.trace_mode_button, 0, wx.RIGHT, 5)
         toolbar_sizer.Add(self.reset_view_button, 0, wx.RIGHT, 5)
+        toolbar_sizer.Add(self.restart_button, 0, wx.RIGHT, 5)
 
         self.output_box = wx.TextCtrl(
             terminal_panel,
@@ -697,6 +708,7 @@ class Gui(wx.Frame):
         self.zap_monitor_button.Bind(
             wx.EVT_BUTTON, self.on_zap_monitor_button
         )
+        self.restart_button.Bind(wx.EVT_BUTTON, self.on_restart_button)
         self.reset_view_button.Bind(wx.EVT_BUTTON, self.on_reset_view_button)
         self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
         self.trace_mode_button.Bind(wx.EVT_BUTTON, self.on_trace_mode_button)
@@ -733,6 +745,7 @@ class Gui(wx.Frame):
             self.change_language("zh_CN")
 
     def change_language(self, lang_code):
+        """Change language."""
         with open("lang_pref.txt", "w") as f:
             f.write(lang_code)
 
@@ -881,7 +894,7 @@ class Gui(wx.Frame):
         self.devices.set_switch(switch_id, new_value)
 
         self.write_output(
-    _("Set switch %s to %s.") % (switch_name, new_value))
+            _("Set switch %s to %s.") % (switch_name, new_value))
 
         self.update_switch_box()
         self.update_switch_buttons()
@@ -911,6 +924,29 @@ class Gui(wx.Frame):
         max_vertical_scroll = max(0, total_height - canvas_size.height)
         self.h_scroll.SetRange(0, max_horizontal_scroll)
         self.v_scroll.SetRange(0, max_vertical_scroll)
+
+    def on_restart_button(self, event):
+        """Close this GUI and restart logsim with the same definition file."""
+        if self.path is None:
+            self.write_output(_("Error: no definition file path "
+                                "is available."))
+            return
+
+        self.is_running = False
+        self.cycles_remaining = 0
+
+        gui_directory = os.path.dirname(os.path.abspath(__file__))
+        logsim_path = os.path.join(gui_directory, "logsim.py")
+
+        try:
+            subprocess.Popen([sys.executable, logsim_path, self.path])
+        except OSError as error:
+            self.write_output(
+                _("Error: could not restart simulator: %s") % str(error)
+            )
+            return
+
+        self.Close(True)
 
     def process_command(self, command):
         """Interpret a terminal command and call the appropriate method."""
@@ -950,6 +986,7 @@ class Gui(wx.Frame):
             self.write_output(_("Error: unknown command '%s'.") % command_type)
 
     def handle_run_command(self, parts):
+        """Process run command."""
         cycles = self.get_cycle_argument(parts, "r N")
         if cycles is None:
             return
@@ -958,12 +995,14 @@ class Gui(wx.Frame):
         self.canvas.Refresh()
 
     def handle_continue_command(self, parts):
+        """Process continue command."""
         cycles = self.get_cycle_argument(parts, "c N")
         if cycles is None:
             return
         self.start_simulation(cycles, cold_start=False)
 
     def handle_switch_command(self, parts):
+        """Process switch command."""
         if len(parts) != 3:
             self.write_output(_("Error: usage is s X N, for example s SW1 1."))
             return
@@ -985,6 +1024,7 @@ class Gui(wx.Frame):
         self.update_switch_buttons()
 
     def handle_monitor_command(self, parts):
+        """Process monitor command."""
         if len(parts) != 2:
             self.write_output(_("Error: usage is m X, for example m G1."))
             return
@@ -1010,6 +1050,7 @@ class Gui(wx.Frame):
         self.canvas.Refresh()
 
     def handle_zap_command(self, parts):
+        """Process zap command."""
         if len(parts) != 2:
             self.write_output(_("Error: usage is z X, for example z G1."))
             return
@@ -1060,11 +1101,13 @@ class Gui(wx.Frame):
         self.canvas.Refresh()
 
     def handle_help_command(self, parts):
+        """Process help command."""
         cycles = self.get_cycle_argument(parts, "h")
         if cycles is None:
             return
 
     def get_cycle_argument(self, parts, usage):
+        """Get number of cycle."""
         if len(parts) != 2:
             self.write_output(_("Error: usage is %s.") % usage)
             return None
@@ -1079,6 +1122,7 @@ class Gui(wx.Frame):
         return cycles
 
     def start_simulation(self, cycles, cold_start=False):
+        """Start simulation."""
         if self.is_running:
             self.write_output(_("Error: simulation is already running."))
             return
@@ -1094,6 +1138,7 @@ class Gui(wx.Frame):
         self.run_next_cycle()
 
     def run_next_cycle(self):
+        """Run next cycle."""
         if not self.is_running:
             return
 
@@ -1109,7 +1154,11 @@ class Gui(wx.Frame):
         if not success:
             self.is_running = False
             self.write_output(
-                _("Error: simulation failed to reach steady state."))
+                _("Error: the circuit did not settle"
+                  " during this simulation cycle."
+                  "This usually means a signal is repeatedly changing,"
+                  "often because of a feedback loop through gates without"
+                  " a DTYPE or other memory element."))
             self.canvas.render(_("Simulation error."))
             return
 
@@ -1121,16 +1170,19 @@ class Gui(wx.Frame):
         self.canvas.Refresh()
 
     def do_prepare_fresh_run(self):
+        """Prepare fresh run."""
         self.monitors.reset_monitors()
         self.devices.cold_startup()
 
     def do_one_simulation_cycle(self):
+        """One simulation."""
         success = self.network.execute_network(self.cycles_completed)
         if success:
             self.monitors.record_signals()
         return success
 
     def do_set_switch(self, switch_name, switch_value):
+        """Set switch value."""
         switch_id = self.names.query(switch_name)
         if switch_id is None:
             self.write_output(_("Error: unknown switch %s.") % switch_name)
@@ -1142,24 +1194,29 @@ class Gui(wx.Frame):
         self.update_switch_buttons
 
     def do_add_monitor(self, signal_name):
+        """Add monitor."""
         device_id, output_id = self.devices.get_signal_ids(signal_name)
         self.monitors.make_monitor(device_id, output_id)
         self.write_output(_("Added monitor on %s.") % signal_name)
 
     def do_remove_monitor(self, signal_name):
+        """Remove monitor."""
         device_id, output_id = self.devices.get_signal_ids(signal_name)
         self.monitors.remove_monitor(device_id, output_id)
         self.write_output(_("Removed monitor from %s.") % signal_name)
 
     def on_horizontal_scroll(self, event):
+        """Update horizontal scroll."""
         value = self.h_scroll.GetValue()
         self.canvas.set_horizontal_scroll(value)
 
     def on_vertical_scroll(self, event):
+        """Update vertical scroll."""
         value = self.v_scroll.GetValue()
         self.canvas.set_vertical_scroll(value)
 
     def write_output(self, message):
+        """Print output."""
         self.output_box.AppendText(message + "\n")
 
 
